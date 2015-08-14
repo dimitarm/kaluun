@@ -26,3 +26,11 @@
 *.exe
 *.out
 *.app
+
+#eclipse related
+.cproject
+.project
+.settings/
+Debug/
+
+.gitignore~
