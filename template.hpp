@@ -127,7 +127,9 @@ struct if_node: public node_with_children<Context, Out> {
 				}
 			}
 		} else
-			else_node_->operator()(ctx, out);
+			if(else_node_.get()){ //check if we have else node!
+				else_node_->operator()(ctx, out);
+			}
 	}
 	virtual ~if_node() {
 	}  //need to have this, otherwise type is not polymorphic

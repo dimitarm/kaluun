@@ -6,7 +6,10 @@
  */
 
 #include <string>
+#include <memory>
 #include <unordered_map>
+#include <boost/noncopyable.hpp>
+#include "variant.hpp"
 
 #ifndef CONTEXT_HPP_
 #define CONTEXT_HPP_
@@ -15,35 +18,6 @@
 namespace templater{
 
 struct context{
-
-	struct variant{
-		std::string value_;
-		variant() {}
-
-		std::string::iterator begin(){
-			return value_.begin();
-		}
-
-		std::string::iterator end(){
-			return value_.end();
-		}
-
-		variant& operator=(const std::string& str_val){
-			value_ = str_val;
-			return *this;
-		}
-
-		variant& operator=(const std::string::value_type& char_val){
-			value_ = char_val;
-			return *this;
-		}
-
-		const std::string& to_string(){
-			return value_;
-		}
-
-	};
-
 
 	struct exception : public std::exception{
 		std::string what_;
@@ -56,14 +30,86 @@ struct context{
 		}
 	};
 
+	struct value;
+	struct value_iterator{
+		variant_iterator 		variant_it_;
+
+		value_iterator(variant_iterator variant_it):variant_it_(variant_it){
+		}
+		value operator*(){
+			value _val(&(*variant_it_));
+			return _val;
+		}
+		value_iterator& operator++(){
+			variant_it_++;
+			return *this;
+		}
+		value_iterator operator++(int){
+			value_iterator _tmp = *this;
+			variant_it_++;
+			return _tmp;
+		}
+		bool operator==(value_iterator& it){
+			return it.variant_it_ == variant_it_;
+		}
+		bool operator!=(value_iterator& it){
+			return it.variant_it_ != variant_it_;
+		}
+	};
+	//todo
+	//values cannot live outside their context!!
+	struct value {
+		variant* 	variant_;
+		bool		own_pointer_;
+
+		value():variant_(nullptr), own_pointer_(false){}
+		value(variant* var):variant_(var), own_pointer_(false){}
+		value(const value& new_val){
+			variant_ = new_val.variant_->clone();
+			own_pointer_ = true;
+		}
+		~value(){
+			if (own_pointer_ && variant_)
+				delete variant_;
+		}
+		value& operator=(const value& new_val){
+			if (own_pointer_ && variant_)
+				delete variant_;
+			variant_ = new_val.variant_;
+			own_pointer_ = false;
+			return *this;
+		}
+
+		template<class T>
+		value& operator=(const T& new_val){
+			if (own_pointer_ && variant_){
+				delete variant_;
+				variant_ = nullptr;
+			}
+			variant_ = new typed_variant<T>(new_val);
+			own_pointer_ = true;
+			return *this;
+		}
+
+		value_iterator begin(){
+			value_iterator val_it(variant_->begin());
+			return val_it;
+		}
+		value_iterator end(){
+			return value_iterator(variant_->end());
+		}
+
+		std::string to_string(){
+			return variant_->to_string();
+		}
+	};
+
 	context* parent_;
-
-
 	context():parent_(NULL){}
-	std::unordered_map<std::string, variant> values_;
+	std::unordered_map<std::string, value> values_;
 
 	context(context* parent):parent_(parent){}
-	variant& operator[](const std::string& key){
+	value& operator[](const std::string& key){
 		if(values_.count(key))
 			return values_[key];
 		else if (has(key))
@@ -88,9 +134,5 @@ struct context{
 };
 
 } //namespace templater
-
-//std::string& operator=(std::string& str, const templater::context::variant& var){
-//			return str;
-//		}
 
 #endif /* CONTEXT_HPP_ */

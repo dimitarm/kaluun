@@ -31,7 +31,7 @@ TEST(Functional, loop1){
 	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::dummy_expression<std::string>, std::string> template_type;
 
 	template_type tpl;
-	template_type::in_type  template_text("abc{% for v in values %} {{v}}{%endfor%}efg");
+	template_type::in_type  template_text("{% for v in values %}{{v}}{%endfor%}");
 	template_type::out_type str_out;
 	template_type::context_type ctx;
 	ctx["values"] = std::string("123");
@@ -39,10 +39,23 @@ TEST(Functional, loop1){
 	parser.parse_template();
 	tpl.generate(ctx, str_out);
 
-	EXPECT_STREQ("abc 1 2 3efg", str_out.str().c_str());
+	EXPECT_STREQ("123", str_out.str().c_str());
 }
 
-TEST(Functional, elif_syntax){
+//TEST(Functional, context){
+//	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::dummy_expression<std::string>, std::string> template_type;
+//	template_type::context_type::value values;
+//	{
+//		template_type::context_type ctx;
+//		ctx["values"] = std::string("123");
+//		values = ctx["values"];
+//	}
+//	values.to_string();
+//
+//	SUCCEED();
+//}
+//
+TEST(Functional, elif_syntax1){
 	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::dummy_expression<std::string>, std::string> template_type;
 
 	template_type tpl;
@@ -58,6 +71,24 @@ TEST(Functional, elif_syntax){
 		EXPECT_TRUE(std::string(ex.what()).find("template error: expected node was if or elif, got: ") != std::string::npos);
 	}
 }
+//
+//TEST(Functional, exprtk_expression){
+//	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::exprtk::expression<std::string>, std::string> template_type;
+//
+//	template_type tpl;
+//	template_type::in_type  template_text("{% if x > 5 %}abc{% endif %}");
+//	template_type::out_type str_out;
+//	template_type::context_type ctx;
+//	ctx["x"] = std::string("5");
+//	templater::parser<template_type> parser(template_text, tpl);
+//	parser.parse_template();
+//	tpl.generate(ctx, str_out);
+//	EXPECT_STREQ("", str_out.str().c_str());
+//
+//	ctx["x"] = std::string("6");
+//	tpl.generate(ctx, str_out);
+//	EXPECT_STREQ("abc", str_out.str().c_str());
+//}
 
 TEST(Functional, dummy_expression){
 	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::dummy_expression<std::string>, std::string> template_type;
