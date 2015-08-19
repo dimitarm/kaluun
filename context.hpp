@@ -32,28 +32,33 @@ struct context{
 
 	struct value;
 	struct value_iterator{
-		variant_iterator 		variant_it_;
+		variant_iterator* 		variant_it_;
 
-		value_iterator(variant_iterator variant_it):variant_it_(variant_it){
+		value_iterator(variant_iterator* variant_it):variant_it_(variant_it){}
+		value_iterator(const value_iterator& val_it){
+			variant_it_ = new variant_iterator(val_it.variant_it_->variant_);
+		}
+		~value_iterator(){
+			delete variant_it_;
 		}
 		value operator*(){
-			value _val(&(*variant_it_));
+			value _val(&(**variant_it_));
 			return _val;
 		}
 		value_iterator& operator++(){
-			variant_it_++;
+			variant_it_->operator ++();
 			return *this;
 		}
 		value_iterator operator++(int){
 			value_iterator _tmp = *this;
-			variant_it_++;
+			variant_it_->operator ++();
 			return _tmp;
 		}
 		bool operator==(value_iterator& it){
-			return it.variant_it_ == variant_it_;
+			return *(it.variant_it_) == *variant_it_;
 		}
 		bool operator!=(value_iterator& it){
-			return it.variant_it_ != variant_it_;
+			return *(it.variant_it_) != *variant_it_;
 		}
 	};
 	//todo
@@ -86,11 +91,10 @@ struct context{
 				delete variant_;
 				variant_ = nullptr;
 			}
-			variant_ = new typed_variant<T>(new_val);
+			variant_ = new typed_variant<T, templater::is_iterable<T>::value >(new_val);
 			own_pointer_ = true;
 			return *this;
 		}
-
 		value_iterator begin(){
 			value_iterator val_it(variant_->begin());
 			return val_it;

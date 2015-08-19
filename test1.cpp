@@ -42,6 +42,23 @@ TEST(Functional, loop1){
 	EXPECT_STREQ("123", str_out.str().c_str());
 }
 
+TEST(Functional, context1){
+	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::dummy_expression<std::string>, std::string> template_type;
+
+	template_type tpl;
+	template_type::in_type  template_text("{% for v in values %}{{v}}{%endfor%}_{% for v in value2 %}{{v}}{%endfor%}_{{value2}}");
+	template_type::out_type str_out;
+	template_type::context_type ctx;
+	std::list<std::string>	values;
+	values.push_back(std::string("1"));values.push_back(std::string("2"));values.push_back(std::string("3"));
+	ctx["values"] = values;
+	ctx["value2"] = 5;
+	templater::parser<template_type> parser(template_text, tpl);
+	parser.parse_template();
+	tpl.generate(ctx, str_out);
+	EXPECT_STREQ("123_5_5", str_out.str().c_str());
+}
+
 //TEST(Functional, context){
 //	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::dummy_expression<std::string>, std::string> template_type;
 //	template_type::context_type::value values;
