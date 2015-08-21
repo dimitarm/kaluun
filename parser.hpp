@@ -32,6 +32,7 @@ struct parser {
 	typedef typename templ_type::in_type::iterator iterator_type;
 	typedef typename templ_type::in_type::const_iterator const_iterator_type;
 	typedef typename Template::expression_type expression_type;
+	typedef typename Template::condition_type condition_type;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	struct exception: public std::exception {
@@ -178,15 +179,15 @@ struct parser {
 		for (int i = 1; i < tokens.size(); i++)
 			expression_string += tokens[i];
 
-		expression_type expr;
-		expression_type::parse(expression_string, expr);
-		std::shared_ptr<if_node<context_type, out_type, expression_type> > c_node;
+		condition_type expr;
+		condition_type::parse(expression_string, expr);
+		std::shared_ptr<if_node<context_type, out_type, condition_type> > c_node;
 		if (tokens[0] == "if")
-			c_node.reset(new if_node<context_type, out_type, expression_type>);
+			c_node.reset(new if_node<context_type, out_type, condition_type>);
 		else{
-			c_node.reset(new elif_node<context_type, out_type, expression_type>);
+			c_node.reset(new elif_node<context_type, out_type, condition_type>);
 			try{
-				if_node<context_type, out_type, expression_type>& ifnode = dynamic_cast<if_node<context_type, out_type, expression_type>&>(cur_level_node);
+				if_node<context_type, out_type, condition_type>& ifnode = dynamic_cast<if_node<context_type, out_type, condition_type>&>(cur_level_node);
 				ifnode.else_node_ = c_node;
 			}
 			catch(std::bad_cast&){
@@ -198,28 +199,27 @@ struct parser {
 		return c_node;
 	}
 
-//	std::shared_ptr<set_node<context_type, out_type, expression_type, holder_type> > create_set_node(iterator_type begin, std::vector<std::string>& tokens, node_with_children<context_type, out_type>& cur_level_node){
-//		std::string expression_string;
-//		for(int i = 1; i < tokens.size(); i++ )
-//			expression_string += tokens[i];
-//		std::string::size_type eq_pos = expression_string.find('=');
-//		if(eq_pos != std::string::npos){
-//			std::string variable = expression_string.substr(0, eq_pos);
-//			expression_string.erase(0, eq_pos + 1); //erase variable name and '=' sign
-//
-//			//exprt expression
-//			std::shared_ptr<exprtk_mj::expression> expr(new exprtk_mj::expression);
-//			exprtk_mj::expression::parse(expression_string, *expr.get());
-//			set_node* seet_node = new set_node;
-//			seet_node->variable_name_ = variable;
-//			seet_node->expression_ = expr;
-//			std::shared_ptr<set_node<context_type, out_type, expression_type, holder_type> > ptr(seet_node);
-//			cur_level_node.add_child(ptr);
-//			return ptr;
-//		}
-//		else
-//			throw exception(in_, begin, "cannot parse set node");
-//	}
+	std::shared_ptr<set_node<context_type, out_type, expression_type, holder_type> > create_set_node(iterator_type begin, std::vector<std::string>& tokens, node_with_children<context_type, out_type>& cur_level_node){
+		std::string expression_string;
+		for(int i = 1; i < tokens.size(); i++ )
+			expression_string += tokens[i];
+		std::string::size_type eq_pos = expression_string.find('=');
+		if(eq_pos != std::string::npos){
+			holder_type variable = expression_string.substr(0, eq_pos);
+			expression_string.erase(0, eq_pos + 1); //erase variable name and '=' sign
+
+			expression_type expr;
+			expression_type::parse(expression_string, expr);
+			set_node<context_type, out_type, expression_type, holder_type>* seet_node = new set_node<context_type, out_type, expression_type, holder_type>;
+			seet_node->variable_name_ = variable;
+			seet_node->expression_ = expr;
+			std::shared_ptr<set_node<context_type, out_type, expression_type, holder_type> > ptr(seet_node);
+			cur_level_node.add_child(ptr);
+			return ptr;
+		}
+		else
+			throw exception(in_, begin, "cannot parse set node");
+	}
 
 	std::pair<std::shared_ptr<node<context_type, out_type> >, int> create_statement_node(iterator_type begin, iterator_type end,
 			node_with_children<context_type, out_type>& cur_level_node) {
@@ -250,7 +250,7 @@ struct parser {
 		//else
 		if (tokens.size() == 1 && tokens[0] == "else") {
 			try{
-				if_node<context_type, out_type, expression_type>& ifnode = dynamic_cast<if_node<context_type, out_type, expression_type>&>(cur_level_node);
+				if_node<context_type, out_type, condition_type>& ifnode = dynamic_cast<if_node<context_type, out_type, condition_type>&>(cur_level_node);
 				std::shared_ptr<node_with_children<context_type, out_type> > else_node(new node_with_children<context_type, out_type>);
 				ifnode.else_node_ = else_node;
 				cur_level_node.add_child(else_node);
@@ -264,7 +264,7 @@ struct parser {
 		if (tokens.size() == 1 && tokens[0] == "endif") {
 			int count = -1;
 			node_with_children<context_type, out_type>* n = &cur_level_node;
-			while (typeid(*n) != typeid(if_node<context_type, out_type, expression_type> )) {
+			while (typeid(*n) != typeid(if_node<context_type, out_type, condition_type> )) {
 				if (n->parent_ == NULL)
 					throw exception(in_, begin, std::string("not valid template"));
 				n = n->parent_;
@@ -274,9 +274,9 @@ struct parser {
 			return std::make_pair(std::shared_ptr<node<context_type, out_type> >(NULL), count);
 		}
 		//set
-//		if (tokens[0] == "set"){
-//			return std::make_pair(create_set_node(begin, tokens, cur_level_node), 0);
-//		}
+		if (tokens[0] == "set"){
+			return std::make_pair(create_set_node(begin, tokens, cur_level_node), 0);
+		}
 
 		throw exception(in_, begin, "unknown node");
 	}

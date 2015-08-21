@@ -114,7 +114,7 @@ struct context{
 
 	context(context* parent):parent_(parent){}
 	value& operator[](const std::string& key){
-		if(values_.count(key))
+		if(values_.find(key) != values_.end())
 			return values_[key];
 		else if (has(key))
 			return parent_->operator [](key);
@@ -124,7 +124,7 @@ struct context{
 	}
 
 	bool has(const std::string& key){
-		if(values_.count(key))
+		if(values_.find(key) != values_.end())
 			return true;
 		else if(parent_ != NULL)
 			return parent_->has(key);

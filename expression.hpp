@@ -13,22 +13,24 @@
 #ifndef EXPRESSION_HPP_
 #define EXPRESSION_HPP_
 
-namespace templater{
-	template <class Holder>
-	struct dummy_expression{
-		static void parse(Holder , dummy_expression& ){
+namespace templater {
+template<class Context, class Holder>
+struct dummy_expression {
+	static void parse(Holder, dummy_expression&) {
+	}
+	std::string operator()(Context&) {
+		return "__dummy__value__";
+	}
 
-		}
-		template<typename T, typename Context>
-		bool value(Context& ){
-			return false;
-		}
+};
 
-		std::type_info get_result_type(){
-			return typeid(bool);
-		}
-
-		virtual ~dummy_expression() {};
-	};
+template<class Context, class Holder>
+struct dummy_condition {
+	static void parse(Holder, dummy_condition&) {
+	}
+	bool operator()(Context&) {
+		return false;
+	}
+};
 }  //namespace templater
 #endif /* EXPRESSION_HPP_ */

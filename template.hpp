@@ -65,22 +65,8 @@ struct set_node: public node<Context, Out> {
 	Holder variable_name_;
 	Expression expression_;
 
-	void operator()(Context& ctx, Out& out) {
-		std::type_info result_type = expression_.get_result_type();
-		if(result_type == typeid(short))
-			ctx[variable_name_] = expression_.template value<short>(ctx);
-		else if (result_type == typeid(char))
-			ctx[variable_name_] = expression_.template value<char>(ctx);
-		else if (result_type == typeid(int))
-			ctx[variable_name_] = expression_.template value<int>(ctx);
-		else if (result_type == typeid(double))
-			ctx[variable_name_] = expression_.template value<double>(ctx);
-		else if (result_type == typeid(float))
-			ctx[variable_name_] = expression_.template value<float>(ctx);
-		else if (result_type == typeid(std::string))
-			ctx[variable_name_] = expression_.template value<std::string>(ctx);
-		else
-			throw std::logic_error(std::string("unsupported exception type:") + result_type.name());
+	void operator()(Context& ctx, Out& ) {
+		ctx[variable_name_] = expression_(ctx);
 	}
 };
 
@@ -90,6 +76,8 @@ struct variable_node: public node<Context, Out> {
 	Holder name_;
 
 	void operator()(Context& ctx, Out& out) {
+		if(!ctx.has(name_))
+			throw std::logic_error(std::string("no value for: ") + name_);
 		out << ctx[name_].to_string();
 	}
 };
@@ -119,7 +107,7 @@ struct if_node: public node_with_children<Context, Out> {
 	Condition condition_;
 
 	void operator()(Context& ctx, Out& out) {
-		if (condition_.template value<bool>(ctx)) {
+		if (condition_(ctx)) {
 			//render all sub nodes without the else node
 			for (auto it = this->child_nodes_.begin(); it != this->child_nodes_.end(); it++) {
 				if (it->get() != else_node_.get()) {
@@ -146,8 +134,7 @@ struct expression_node: public node<Context, Out> {
 	Expression expression_;
 
 	void operator()(Context& ctx, Out& out) {
-		//todo convert value
-		out <<	expression_. template value<std::string>(ctx);
+		out <<	expression_(ctx);
 	}
 };
 
@@ -161,13 +148,15 @@ struct root_node: public node_with_children<Context, Out> {
 	}
 };
 
-template<class Context, class In, class Out, class Expression, class Holder = std::string>
+//template<class Context, class In, class Out, class Expression, class Condition, class Holder = std::string>
+template<class Context, class In, class Out, class Expression, class Condition, class Holder>
 struct template_tree {
 	typedef Context context_type;
 	typedef Out out_type;
 	typedef In in_type;
 	typedef Holder holder_type;
 	typedef Expression expression_type;
+	typedef Condition condition_type;
 
 	root_node<Context, Out> root_;
 
