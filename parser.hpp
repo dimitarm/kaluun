@@ -179,8 +179,6 @@ struct parser {
 		for (int i = 1; i < tokens.size(); i++)
 			expression_string += tokens[i];
 
-		condition_type expr;
-		condition_type::parse(expression_string, expr);
 		std::shared_ptr<if_node<context_type, out_type, condition_type> > c_node;
 		if (tokens[0] == "if")
 			c_node.reset(new if_node<context_type, out_type, condition_type>);
@@ -194,7 +192,7 @@ struct parser {
 				throw exception(in_, begin, std::string("template error: expected node was if or elif, got: ") + typeid(cur_level_node).name());
 			}
 		}
-		c_node->condition_ = expr;
+		condition_type::parse(expression_string, c_node->condition_);
 		cur_level_node.add_child(c_node);
 		return c_node;
 	}
@@ -208,11 +206,9 @@ struct parser {
 			holder_type variable = expression_string.substr(0, eq_pos);
 			expression_string.erase(0, eq_pos + 1); //erase variable name and '=' sign
 
-			expression_type expr;
-			expression_type::parse(expression_string, expr);
 			set_node<context_type, out_type, expression_type, holder_type>* seet_node = new set_node<context_type, out_type, expression_type, holder_type>;
 			seet_node->variable_name_ = variable;
-			seet_node->expression_ = expr;
+			expression_type::parse(expression_string, seet_node->expression_);
 			std::shared_ptr<set_node<context_type, out_type, expression_type, holder_type> > ptr(seet_node);
 			cur_level_node.add_child(ptr);
 			return ptr;
