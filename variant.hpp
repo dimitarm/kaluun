@@ -249,10 +249,15 @@ struct typed_variant_iterator : public variant_iterator{
 		it_ = it;
 		end_ = end;
 		if (it_ != end_)
-			variant_ = new variant_type(*it_);
+			variant_ = new variant_type(*it_);  //BOOM! if it_ points to illegal location todo
+		else
+			variant_  = nullptr;
 	}
 
-	virtual ~typed_variant_iterator() {	}
+	virtual ~typed_variant_iterator() {
+		if(variant_)
+			delete variant_;
+	}
 	virtual variant& operator*() const {
 		return *variant_;
 	}
@@ -267,6 +272,8 @@ struct typed_variant_iterator : public variant_iterator{
 			delete variant_;
 		if (it_ != end_)
 			variant_ = new variant_type(*it_);
+		else
+			variant_  = nullptr;
 		return *this;
 	}
 	;
@@ -277,6 +284,8 @@ struct typed_variant_iterator : public variant_iterator{
 			delete variant_;
 		if (it_ != end_)
 			variant_ = new variant_type(*it_);
+		else
+			variant_  = nullptr;
 		return _tmp;
 	}
 	;

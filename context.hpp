@@ -133,7 +133,7 @@ struct context{
 	}
 
 	context create_sub_context(){
-		return new context(this);
+		return context(this);
 	}
 };
 

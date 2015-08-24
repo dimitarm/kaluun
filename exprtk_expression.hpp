@@ -70,7 +70,7 @@ struct expression{
 
 	expression() {
 		expression_.register_symbol_table(symbol_table_);
-		symbol_table_.add_constants();
+		//symbol_table_.add_constants();
 		//todo symbol_table_ add built in functions
 	}
 
