@@ -154,13 +154,12 @@ struct parser {
 	}
 
 	iterator_type create_comment_node(iterator_type pos) {
-		while (pos != in_.end() && *pos != DIEZ)
+		do{
+			while (pos != in_.end() && *pos != DIEZ)
+				pos++;
 			pos++;
-		pos++;
-		if (pos == in_.end())
-			throw exception(in_, pos, "cannot handle comment node");
-		if (*pos != CLOSE_BRACKET)
-			throw exception(in_, pos, "cannot handle comment node");
+		}
+		while (pos != in_.end() && *pos != CLOSE_BRACKET);
 		pos++;
 		return pos;
 	}

@@ -34,3 +34,5 @@
 Debug/
 
 .gitignore~
+Release/
+test_output/

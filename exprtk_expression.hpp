@@ -26,7 +26,7 @@ struct expression : public boost::noncopyable{
 	typedef ::exprtk::parser<result_type> 				parser_t;
 
 	struct variable_function: public ::exprtk::ifunction<result_type> , boost::noncopyable {
-		std::string						variable_;
+		const std::string&				variable_;
 		Context*						context_;
 
 		variable_function(const std::string& variable): ::exprtk::ifunction<result_type>(0), variable_(variable), context_(nullptr) { }
@@ -81,7 +81,6 @@ struct expression : public boost::noncopyable{
 
 		parser.compile(expression_string, expression1); //first run
 		for(auto it = expr.variables_.begin(); it != expr.variables_.end(); it++){
-			//variable_function functor(expr, *it);
 			expr.functors_.emplace_back(*it);
 			expr.symbol_table_.add_function(*it, expr.functors_.back());
 		}
@@ -99,7 +98,7 @@ struct condition : public boost::noncopyable{
 	typedef ::exprtk::parser<result_type> 				parser_t;
 
 	struct variable_function: public ::exprtk::ifunction<result_type> , boost::noncopyable{
-		std::string						variable_;
+		const std::string&				variable_;
 		Context*						context_;
 
 		variable_function(const std::string& variable): ::exprtk::ifunction<result_type>(0), variable_(variable), context_(nullptr) { }

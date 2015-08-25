@@ -104,7 +104,10 @@ struct context{
 		}
 
 		std::string to_string(){
-			return variant_->to_string();
+			if(variant_)
+				return variant_->to_string();
+			else
+				throw std::logic_error("value not set in context");
 		}
 	};
 
