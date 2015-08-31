@@ -36,7 +36,7 @@ struct context{
 
 		value_iterator(variant_iterator* variant_it):variant_it_(variant_it){}
 		value_iterator(const value_iterator& val_it){
-			variant_it_ = new variant_iterator(val_it.variant_it_->variant_);
+			variant_it_ = val_it.variant_it_->clone();
 		}
 		~value_iterator(){
 			delete variant_it_;
@@ -46,18 +46,32 @@ struct context{
 			return _val;
 		}
 		value_iterator& operator++(){
-			variant_it_->operator ++();
+			++(*variant_it_);
+			return *this;
+		}
+		value_iterator& operator--(){
+			--(*variant_it_);
 			return *this;
 		}
 		value_iterator operator++(int){
 			value_iterator _tmp = *this;
-			variant_it_->operator ++();
+			++(*variant_it_);
 			return _tmp;
 		}
-		bool operator==(value_iterator& it){
+		value_iterator operator--(int){
+			value_iterator _tmp = *this;
+			--(*variant_it_);
+			return _tmp;
+		}
+		bool operator==(const value_iterator& it){
 			return *(it.variant_it_) == *variant_it_;
 		}
-		bool operator!=(value_iterator& it){
+		value_iterator& operator=(const value_iterator& val_it){
+			delete variant_it_;
+			variant_it_ = val_it.variant_it_->clone();
+			return *this;
+		}
+		bool operator!=(const value_iterator& it){
 			return *(it.variant_it_) != *variant_it_;
 		}
 	};
@@ -67,7 +81,7 @@ struct context{
 		variant* 	variant_;
 		bool		own_pointer_;
 
-		value():variant_(nullptr), own_pointer_(false){}
+		value():variant_(nullptr), own_pointer_(false){	}
 		value(variant* var):variant_(var), own_pointer_(false){}
 		value(const value& new_val){
 			variant_ = new_val.variant_->clone();
@@ -87,27 +101,34 @@ struct context{
 
 		template<class T>
 		value& operator=(const T& new_val){
+			variant* tmp = new typed_variant<T, templater::is_iterable<T>::value>(new_val);
 			if (own_pointer_ && variant_){
 				delete variant_;
-				variant_ = nullptr;
 			}
-			variant_ = new typed_variant<T, templater::is_iterable<T>::value >(new_val);
+			variant_ = tmp;
 			own_pointer_ = true;
 			return *this;
 		}
 		value_iterator begin(){
+			set_default_value();
 			value_iterator val_it(variant_->begin());
 			return val_it;
 		}
 		value_iterator end(){
+			set_default_value();
 			return value_iterator(variant_->end());
 		}
 
 		std::string to_string(){
-			if(variant_)
-				return variant_->to_string();
-			else
-				throw std::logic_error("value not set in context");
+			set_default_value();
+			return variant_->to_string();
+		}
+
+		void set_default_value(){ //dummy default value lazily set to avoid unnecessary object creation
+			if(!variant_){
+				variant_ = new typed_variant<std::string, templater::is_iterable<std::string>::value>(std::string(""));
+				own_pointer_ = true;
+			}
 		}
 	};
 

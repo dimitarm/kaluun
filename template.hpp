@@ -89,6 +89,8 @@ struct for_loop_node: public node_with_children<Context, Out> {
 	Holder local_loop_variable_;
 
 	void operator()(Context& ctx, Out& out) {
+		if(!ctx.has(loop_variable_))
+			throw std::logic_error(std::string("no value for: ") + loop_variable_);
 		auto it = ctx[loop_variable_].begin();
 		auto end = ctx[loop_variable_].end();
 

@@ -10,6 +10,7 @@
 #include "context.hpp"
 #include <list>
 #include <boost/noncopyable.hpp>
+#include <boost/lexical_cast.hpp>
 
 #ifndef EXPRTK_EXPRESSION_HPP_
 #define EXPRTK_EXPRESSION_HPP_
@@ -35,7 +36,7 @@ struct expression : public boost::noncopyable{
 		}
 		inline result_type operator()() {
 			if(context_ != NULL)
-				return std::stod(context_->operator[](variable_).to_string());
+				return boost::lexical_cast<result_type>(context_->operator[](variable_).to_string());
 			else
 				throw std::logic_error("context has not been set");
 		}

@@ -33,13 +33,15 @@ TEST(Functional, exprtk_expression) {
 			templater::dummy_condition<templater::context, std::string>, std::string> template_type;
 
 	template_type tpl;
-	template_type::in_type template_text("{% set x = 5 %}{% set y = 10 %}{% set z = x + y %}{{z}}");
+	template_type::in_type template_text("{% set x = 5 %}{% set y = 10 %}{% set z = x + y %}{{z}}{% set z = a + 1%} {{z}}{% set z = b%} {{z}}");
 	template_type::out_type str_out;
 	template_type::context_type ctx;
+	ctx["a"] = 26;
+	ctx["b"] = std::string("26.62");
 	templater::parser<template_type> parser(template_text, tpl);
 	parser.parse_template();
 	tpl.generate(ctx, str_out);
-	EXPECT_STREQ("15.000000", str_out.str().c_str());
+	EXPECT_STREQ("15.000000 27.000000 26.620000", str_out.str().c_str());
 }
 
 TEST(Functional, comment) {
@@ -128,3 +130,46 @@ TEST(Performance, parse_generate1) {
 	std::cerr << "GenerateTime: " << buf2.str() << std::endl;
 }
 
+TEST(Performance, generate1) {
+	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::dummy_expression<templater::context, std::string>,
+			templater::dummy_condition<templater::context, std::string>, std::string> template_type;
+
+	std::string template_text;
+
+	template_text.append("{% set x = 1 %}");
+	template_text.append("{% for row in rows %}");
+	template_text.append("{{x}}");
+	template_text.append("{% set x = x + 0.5 %}");
+	template_text.append("{% if row / 5 < x %}");
+	template_text.append("{{x}}");
+	template_text.append("{% elif row - 50 > x %}");
+	template_text.append("{{x}}");
+	template_text.append("{% else %}");
+	template_text.append("{{x}}");
+	template_text.append("{% endif %}");
+	template_text.append("{% endfor %}");
+
+	template_type::context_type ctx;
+	std::list<int> rows;
+	for (int i = 0; i < 100000; i++)
+		rows.push_back(i);
+	ctx["rows"] = rows;
+
+	//parse test
+	//generate test
+	template_type tpl;
+	templater::parser<template_type> parser(template_text, tpl);
+	parser.parse_template();
+	boost::posix_time::ptime begin = boost::posix_time::microsec_clock::local_time();
+	{
+		for (int i = 0; i < 100; i++) {
+			template_type::out_type str_out;
+			tpl.generate(ctx, str_out);
+		}
+	}
+	auto generate_time = boost::posix_time::microsec_clock::local_time() - begin;
+	std::stringstream buf2;
+	buf2 << generate_time;
+	::testing::Test::RecordProperty("GenerateTime", buf2.str());
+	std::cerr << "GenerateTime: " << buf2.str() << std::endl;
+}
