@@ -362,20 +362,14 @@ struct typed_variant_iterator: public variant_iterator {
 		return _tmp;
 	}
 
-	//todo measure performance of both implementations of == and != operators
 	virtual bool operator==(const variant_iterator& iter) const {
-		if (!std::strcmp(typeid(const typed_variant_iterator<IteratorType, ValueType>&).name(), typeid(iter).name())) {
-			const typed_variant_iterator<IteratorType, ValueType>& _iter = static_cast<const typed_variant_iterator<IteratorType, ValueType>&>(iter);
+		try{
+			const typed_variant_iterator<IteratorType, ValueType>& _iter = dynamic_cast<const typed_variant_iterator<IteratorType, ValueType>&>(iter);
 			return it_ == _iter.it_;
-		} else
+		}
+		catch(std::bad_cast& ){
 			return false;
-//		try{
-//			const typed_variant_iterator<IteratorType, ValueType>& _iter = dynamic_cast<const typed_variant_iterator<IteratorType, ValueType>&>(iter);
-//			return it_ == _iter.it_;
-//		}
-//		catch(std::bad_cast& ){
-//			return false;
-//		}
+		}
 	}
 	virtual bool operator!=(const variant_iterator& iter) const {
 		if (!std::strcmp(typeid(const typed_variant_iterator<IteratorType, ValueType>&).name(), typeid(iter).name())) {

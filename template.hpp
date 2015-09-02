@@ -10,7 +10,8 @@
 #include <memory>
 #include "context.hpp"
 #include <boost/noncopyable.hpp>
-#include "expression.hpp"
+#include <boost/range.hpp>
+#include <boost/foreach.hpp>
 
 #ifndef NODE_HPP_
 #define NODE_HPP_
@@ -73,12 +74,13 @@ struct set_node: public node<Context, Out> {
 //variable
 template<class Context, class Out, class Holder>
 struct variable_node: public node<Context, Out> {
-	Holder name_;
+	//Holder name_;
+	std::string name_; //todo use holder
 
 	void operator()(Context& ctx, Out& out) {
 		if(!ctx.has(name_))
 			throw std::logic_error(std::string("no value for: ") + name_);
-		out << ctx[name_].to_string();
+		out << ctx[name_].to_string();//todo remove to_string
 	}
 };
 
@@ -90,7 +92,7 @@ struct for_loop_node: public node_with_children<Context, Out> {
 
 	void operator()(Context& ctx, Out& out) {
 		if(!ctx.has(loop_variable_))
-			throw std::logic_error(std::string("no value for: ") + loop_variable_);
+			throw std::logic_error(std::string("no value for: ").assign(std::begin(loop_variable_), std::end(loop_variable_)));
 		auto it = ctx[loop_variable_].begin();
 		auto end = ctx[loop_variable_].end();
 
@@ -136,7 +138,7 @@ struct expression_node: public node<Context, Out> {
 	Expression expression_;
 
 	void operator()(Context& ctx, Out& out) {
-		out <<	expression_(ctx);
+		out << expression_(ctx);
 	}
 };
 

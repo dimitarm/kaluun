@@ -99,7 +99,7 @@ struct parser {
 	}
 
 	iterator_type create_variable_node(iterator_type pos, node_with_children<context_type, out_type>& cur_level_node) {
-		holder_type var_text;
+		std::string var_text;//todo use holder
 		if (pos == in_.end())
 			throw exception(in_, pos, "cannot handle variable node");
 
@@ -202,7 +202,8 @@ struct parser {
 			expression_string += tokens[i];
 		std::string::size_type eq_pos = expression_string.find('=');
 		if(eq_pos != std::string::npos){
-			holder_type variable = expression_string.substr(0, eq_pos);
+			std::string substr = expression_string.substr(0, eq_pos);
+			holder_type variable = substr;
 			expression_string.erase(0, eq_pos + 1); //erase variable name and '=' sign
 
 			set_node<context_type, out_type, expression_type, holder_type>* seet_node = new set_node<context_type, out_type, expression_type, holder_type>;

@@ -15,8 +15,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 TEST(Functional, exprtk_condition) {
-	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::exprtk::expression<templater::context, std::string>,
-			templater::exprtk::condition<templater::context, std::string>, std::string> template_type;
+	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::exprtk::expression<templater::context<std::string>, std::string>,
+			templater::exprtk::condition<templater::context<std::string>, std::string>, std::string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% set x = 5 %}{% if x > 5 %}bigger than five{% else %}less than five{% endif %}");
@@ -29,8 +29,8 @@ TEST(Functional, exprtk_condition) {
 }
 
 TEST(Functional, exprtk_expression) {
-	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::exprtk::expression<templater::context, std::string>,
-			templater::dummy_condition<templater::context, std::string>, std::string> template_type;
+	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::exprtk::expression<templater::context<std::string>, std::string>,
+			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% set x = 5 %}{% set y = 10 %}{% set z = x + y %}{{z}}{% set z = a + 1%} {{z}}{% set z = b%} {{z}}");
@@ -45,8 +45,8 @@ TEST(Functional, exprtk_expression) {
 }
 
 TEST(Functional, comment) {
-	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::exprtk::expression<templater::context, std::string>,
-			templater::exprtk::condition<templater::context, std::string>, std::string> template_type;
+	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::exprtk::expression<templater::context<std::string>, std::string>,
+			templater::exprtk::condition<templater::context<std::string>, std::string>, std::string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{#####{{}}#####}{% set x = 5%}{#######}x={{x}}{#####}");
@@ -60,8 +60,8 @@ TEST(Functional, comment) {
 }
 
 TEST(Performance, parse_generate1) {
-	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::exprtk::expression<templater::context, std::string>,
-			templater::dummy_condition<templater::context, std::string>, std::string> template_type;
+	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::exprtk::expression<templater::context<std::string>, std::string>,
+			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
 
 	std::string template_text;
 
@@ -131,8 +131,8 @@ TEST(Performance, parse_generate1) {
 }
 
 TEST(Performance, generate1) {
-	typedef templater::template_tree<templater::context, std::string, std::stringstream, templater::dummy_expression<templater::context, std::string>,
-			templater::dummy_condition<templater::context, std::string>, std::string> template_type;
+	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
+			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
 
 	std::string template_text;
 

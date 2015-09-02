@@ -31,7 +31,7 @@ struct expression : public boost::noncopyable{
 		Context*						context_;
 
 		variable_function(const std::string& variable): ::exprtk::ifunction<result_type>(0), variable_(variable), context_(nullptr) { }
-		inline void set_context(context* target){
+		inline void set_context(Context* target){
 			context_ = target;
 		}
 		inline result_type operator()() {
@@ -104,7 +104,7 @@ struct condition : public boost::noncopyable{
 
 		variable_function(const std::string& variable): ::exprtk::ifunction<result_type>(0), variable_(variable), context_(nullptr) { }
 
-		inline void set_context(context* target){
+		inline void set_context(Context* target){
 			context_ = target;
 		}
 		inline result_type operator()() {

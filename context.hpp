@@ -7,18 +7,18 @@
 
 #include <string>
 #include <memory>
-#include <unordered_map>
+#include <map>
 #include <boost/noncopyable.hpp>
 #include "variant.hpp"
 
 #ifndef CONTEXT_HPP_
 #define CONTEXT_HPP_
 
-
 namespace templater{
 
+template<class Holder>
 struct context{
-
+	typedef Holder			holder_type;
 	struct exception : public std::exception{
 		std::string what_;
 		exception(const std::string& key){
@@ -32,6 +32,7 @@ struct context{
 
 	struct value;
 	struct value_iterator{
+		typedef value			reference;
 		variant_iterator* 		variant_it_;
 
 		value_iterator(variant_iterator* variant_it):variant_it_(variant_it){}
@@ -75,8 +76,7 @@ struct context{
 			return *(it.variant_it_) != *variant_it_;
 		}
 	};
-	//todo
-	//values cannot live outside their context!!
+	//todo values cannot live outside their context!!
 	struct value {
 		variant* 	variant_;
 		bool		own_pointer_;
@@ -134,10 +134,10 @@ struct context{
 
 	context* parent_;
 	context():parent_(NULL){}
-	std::unordered_map<std::string, value> values_;
+	std::map<Holder, value> values_;//todo evaluate hash on boost::iterator_range
 
 	context(context* parent):parent_(parent){}
-	value& operator[](const std::string& key){
+	value& operator[](const holder_type& key){
 		if(values_.find(key) != values_.end())
 			return values_[key];
 		else if (has(key))
@@ -147,7 +147,7 @@ struct context{
 		}
 	}
 
-	bool has(const std::string& key){
+	bool has(const holder_type& key){
 		if(values_.find(key) != values_.end())
 			return true;
 		else if(parent_ != NULL)
@@ -159,8 +159,24 @@ struct context{
 	context create_sub_context(){
 		return context(this);
 	}
-};
+}; }
 
-} //namespace templater
+//todo support for range_mutable_iterator
+//namespace boost
+//{
+//    // specialize range_mutable_iterator and range_const_iterator in namespace boost
+//    template<>
+//    struct range_mutable_iterator< templater::context::value >
+//    {
+//        typedef templater::context::value_iterator type;
+//    };
+//
+//    template<>
+//    struct range_const_iterator< templater::context::value >
+//    {
+//        typedef templater::context::value_iterator type;
+//    };
+//}
+
 
 #endif /* CONTEXT_HPP_ */
