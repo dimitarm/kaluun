@@ -10,6 +10,7 @@
 #include "parser.hpp"
 #include "template.hpp"
 #include "expression.hpp"
+#include <list>
 
 TEST(Functional, parse1) {
 	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
@@ -183,6 +184,18 @@ TEST(Functional, elif_syntax1) {
 	}
 }
 
+TEST(Functional, elif_syntax2) {
+	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
+			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+
+	template_type tpl;
+	template_type::in_type template_text("{% if x > 5 %} template {% elif x < 2 %} template2 {% endif %}");
+	template_type::out_type str_out;
+	templater::parser<template_type> parser(template_text, tpl);
+
+	parser.parse_template();
+	SUCCEED();
+}
 //TEST(Functional, dummy_expression){
 //	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>, templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
 //
@@ -214,10 +227,29 @@ TEST(Functional, set) {
 	EXPECT_STREQ("x=__dummy__value__", str_out.str().c_str());
 }
 
+TEST(Functional, var_node) {
+	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
+			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+
+	template_type tpl;
+	template_type::in_type template_text("{{x}} {{'sss''d'\"'\" '\"'}} {{x>4}}");
+	template_type::out_type str_out;
+	templater::parser<template_type> parser(template_text, tpl);
+	parser.parse_template();
+	template_type::context_type ctx;
+	ctx["x"] = std::string("5");
+	tpl.generate(ctx, str_out);
+
+	EXPECT_STREQ("5 sssd' \" __dummy__value__", str_out.str().c_str());
+}
+
 int main(int argc, char **argv) {
 	std::time_t now = std::time(nullptr);
 	::testing::GTEST_FLAG(output) = std::string("xml:./test_output/").append(std::to_string(now)).append(".xml");
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
+
+//todo improve context structure
+//todo bring context while parsing
 

@@ -24,14 +24,18 @@ TEST(Functional_range, parse1) {
 	template_type::context_type ctx;
 	std::string key("x");
 	ctx[key] = std::string("123");
+	std::string keyy("y");
+	ctx[keyy] = std::string("7");
 	templater::parser<template_type> parser(template_text, tpl);
 	parser.parse_template();
 	tpl.generate(ctx, str_out);
 	EXPECT_STREQ("{blahblah}123qwerty{}}", str_out.str().c_str());
 	template_text[0] = '_';
+	template_text[12] = 'y';  //variable name should be kept as reference
+
 	template_type::out_type str_out2;
 	tpl.generate(ctx, str_out2);
-	EXPECT_STREQ("_blahblah}123qwerty{}}", str_out2.str().c_str());
+	EXPECT_STREQ("_blahblah}7qwerty{}}", str_out2.str().c_str());
 }
 
 

@@ -11,6 +11,7 @@
 #include <list>
 #include <boost/noncopyable.hpp>
 #include <boost/lexical_cast.hpp>
+#include <cmath>
 
 #ifndef EXPRTK_EXPRESSION_HPP_
 #define EXPRTK_EXPRESSION_HPP_
@@ -19,7 +20,7 @@ namespace templater {
 
 namespace exprtk{
 
-template<class Context, class Holder>
+template<class Context>
 struct expression : public boost::noncopyable{
 	typedef double 										result_type;
 	typedef ::exprtk::symbol_table<result_type> 		symbol_table_t;
@@ -68,10 +69,29 @@ struct expression : public boost::noncopyable{
 		for(auto itFunc = functors_.begin(); itFunc != functors_.end(); itFunc++)
 			itFunc->set_context(&ctx);
 		expression::result_type res = expression_.value();
-		return std::to_string(res);
+		return boost::lexical_cast<std::string>(res);
 	}
 
+	template<class Holder>
 	static void parse(Holder expression_string, expression& expr) {
+		unknown_symbol_resolver_helper 		resolver(expr.variables_);
+		expression::parser_t 					parser;
+		expression_t 						expression1;
+		symbol_table_t 						symbol_table1;
+
+		expression1.register_symbol_table(symbol_table1);
+		parser.enable_unknown_symbol_resolver(&resolver);
+
+		parser.compile(std::string(expression_string), expression1); //first run
+		for(auto it = expr.variables_.begin(); it != expr.variables_.end(); it++){
+			expr.functors_.emplace_back(*it);
+			expr.symbol_table_.add_function(*it, expr.functors_.back());
+		}
+		parser.disable_unknown_symbol_resolver();
+		parser.compile(expression_string, expr.expression_);
+	}
+
+	static void parse(const std::string& expression_string, expression& expr) {
 		unknown_symbol_resolver_helper 		resolver(expr.variables_);
 		expression::parser_t 					parser;
 		expression_t 						expression1;
@@ -91,7 +111,7 @@ struct expression : public boost::noncopyable{
 
 };
 
-template<class Context, class Holder>
+template<class Context>
 struct condition : public boost::noncopyable{
 	typedef double 										result_type;
 	typedef ::exprtk::symbol_table<result_type> 		symbol_table_t;
@@ -143,7 +163,27 @@ struct condition : public boost::noncopyable{
 		return expression_.operator bool();
 	}
 
+	template<class Holder>
 	static void parse(Holder expression_string, condition& expr) {
+		unknown_symbol_resolver_helper 		resolver(expr.variables_);
+		condition::parser_t 				parser;
+		expression_t 						expression1;
+		symbol_table_t 						symbol_table1;
+
+		expression1.register_symbol_table(symbol_table1);
+		parser.enable_unknown_symbol_resolver(&resolver);
+
+		parser.compile(std::string(expression_string), expression1); //first run
+		for(auto it = expr.variables_.begin(); it != expr.variables_.end(); it++){
+			//variable_function functor(expr, *it);
+			expr.functors_.emplace_back(*it);
+			expr.symbol_table_.add_function(*it, expr.functors_.back());
+		}
+		parser.disable_unknown_symbol_resolver();
+		parser.compile(expression_string, expr.expression_);
+	}
+
+	static void parse(const std::string& expression_string, condition& expr) {
 		unknown_symbol_resolver_helper 		resolver(expr.variables_);
 		condition::parser_t 				parser;
 		expression_t 						expression1;

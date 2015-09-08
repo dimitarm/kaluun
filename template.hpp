@@ -56,7 +56,7 @@ struct text_node: public node<Context, Out> {
 	Holder text_;
 
 	void operator()(Context&, Out& out) {
-		out << text_;
+		out << text_;  //todo improve performance with iterator_range  holder
 	}
 };
 
@@ -75,11 +75,11 @@ struct set_node: public node<Context, Out> {
 template<class Context, class Out, class Holder>
 struct variable_node: public node<Context, Out> {
 	//Holder name_;
-	std::string name_; //todo use holder
+	Holder name_;
 
 	void operator()(Context& ctx, Out& out) {
 		if(!ctx.has(name_))
-			throw std::logic_error(std::string("no value for: ") + name_);
+			throw std::logic_error(std::string("no value for: ").append(std::begin(name_), std::end(name_)));
 		out << ctx[name_].to_string();//todo remove to_string
 	}
 };
