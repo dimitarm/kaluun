@@ -16,7 +16,7 @@
 #ifndef NODE_HPP_
 #define NODE_HPP_
 
-namespace templater {
+namespace kaluun {
 
 template<class Context, class Out>
 struct node_with_children;
@@ -180,7 +180,5 @@ struct template_tree {
 	void generate(context_type& ctx, Out& out) {
 		root_(ctx, out);
 	}
-};
-
-} //namespace templater
+}; }
 #endif /* NODE_HPP_ */

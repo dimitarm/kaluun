@@ -13,7 +13,7 @@
 #ifndef EXPRESSION_HPP_
 #define EXPRESSION_HPP_
 
-namespace templater {
+namespace kaluun {
 struct dummy_expression {
 	template<class Holder>
 	static void parse(Holder, dummy_expression&) {
@@ -33,6 +33,5 @@ struct dummy_condition {
 	bool operator()(Context&) {
 		return false;
 	}
-};
-}  //namespace templater
+};}
 #endif /* EXPRESSION_HPP_ */

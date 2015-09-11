@@ -20,12 +20,12 @@ template<class K, class V> struct testmap: public std::map<K, V> {
 
 using namespace std;
 TEST(Functional, comment) {
-	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{#####{{}}#####}{% set x = 5%}{#######}x={{x}}{#####}");
 	template_type::out_type str_out;
-	templater::parser<template_type> parser(template_text, tpl);
+	kaluun::parser<template_type> parser(template_text, tpl);
 	parser.parse_template();
 	template_type::context_type ctx;
 	tpl.generate(ctx, str_out);
@@ -34,7 +34,7 @@ TEST(Functional, comment) {
 }
 
 TEST(Performance, parse_generate1) {
-	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	string template_text;
 
@@ -77,12 +77,12 @@ TEST(Performance, parse_generate1) {
 	boost::posix_time::ptime begin = boost::posix_time::microsec_clock::local_time();
 	for (int i = 0; i < 100; i++) {
 		template_type tpl;
-		templater::parser<template_type> parser(template_text, tpl);
+		kaluun::parser<template_type> parser(template_text, tpl);
 		parser.parse_template();
 	}
 	//generate test
 	template_type tpl;
-	templater::parser<template_type> parser(template_text, tpl);
+	kaluun::parser<template_type> parser(template_text, tpl);
 	parser.parse_template();
 	auto parse_time = boost::posix_time::microsec_clock::local_time() - begin;
 	begin = boost::posix_time::microsec_clock::local_time();
@@ -102,7 +102,7 @@ TEST(Performance, parse_generate1) {
 }
 
 TEST(Performance, parse1) {
-	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	string template_text;
 
@@ -143,7 +143,7 @@ TEST(Performance, parse1) {
 	boost::posix_time::ptime begin = boost::posix_time::microsec_clock::local_time();
 	for (int i = 0; i < 100; i++) {
 		template_type tpl;
-		templater::parser<template_type> parser(template_text, tpl);
+		kaluun::parser<template_type> parser(template_text, tpl);
 		parser.parse_template();
 	}
 	auto parse_time = boost::posix_time::microsec_clock::local_time() - begin;
@@ -153,9 +153,9 @@ TEST(Performance, parse1) {
 }
 
 TEST(Performance, holders_compare1) {
-	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type1;  //string holder
+	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type1;  //string holder
 	typedef boost::iterator_range<string::const_iterator> holder_t;
-	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, holder_t> template_type2;
+	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, holder_t> template_type2;
 
 	string template_text;
 
@@ -201,7 +201,7 @@ TEST(Performance, holders_compare1) {
 	boost::posix_time::ptime begin = boost::posix_time::microsec_clock::local_time();
 	for (int i = 0; i < 100; i++) {	//?????????????????????????????????????????????????????????????????????????????????
 		template_type1 tpl1;
-		templater::parser<template_type1> parser(template_text, tpl1);
+		kaluun::parser<template_type1> parser(template_text, tpl1);
 		parser.parse_template();
 	}
 	auto tpl1_parse_time = boost::posix_time::microsec_clock::local_time() - begin;
@@ -209,7 +209,7 @@ TEST(Performance, holders_compare1) {
 	begin = boost::posix_time::microsec_clock::local_time();
 	for (int i = 0; i < 100; i++) {     //?????????????????????????????????????????????????????????????????????????????????
 		template_type2 tpl2;
-		templater::parser<template_type2> parser(template_text, tpl2);
+		kaluun::parser<template_type2> parser(template_text, tpl2);
 		parser.parse_template();
 	}
 	auto tpl2_parse_time = boost::posix_time::microsec_clock::local_time() - begin;
@@ -222,9 +222,9 @@ TEST(Performance, holders_compare1) {
 	template_type1 tpl1;
 	template_type2 tpl2;
 	{
-		templater::parser<template_type1> parser1(template_text, tpl1);
+		kaluun::parser<template_type1> parser1(template_text, tpl1);
 		parser1.parse_template();
-		templater::parser<template_type2> parser2(template_text, tpl2);
+		kaluun::parser<template_type2> parser2(template_text, tpl2);
 		parser2.parse_template();
 
 		template_type1::out_type str_out1;
@@ -259,7 +259,7 @@ TEST(Performance, holders_compare1) {
 }
 
 TEST(Performance, generate1) {
-	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	string template_text;
 
@@ -285,7 +285,7 @@ TEST(Performance, generate1) {
 	//parse test
 	//generate test
 	template_type tpl;
-	templater::parser<template_type> parser(template_text, tpl);
+	kaluun::parser<template_type> parser(template_text, tpl);
 	parser.parse_template();
 	boost::posix_time::ptime begin = boost::posix_time::microsec_clock::local_time();
 	{

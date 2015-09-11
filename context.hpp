@@ -13,7 +13,7 @@
 #ifndef CONTEXT_HPP_
 #define CONTEXT_HPP_
 
-namespace templater {
+namespace kaluun {
 struct value;
 template<class Value = value>
 struct value_iterator {
@@ -107,13 +107,13 @@ struct value {
 
 	void set_default_value() { //dummy default value lazily set to avoid unnecessary object creation
 		if (!variant_) {
-			variant_ = new typed_variant<std::string, templater::is_iterable<std::string>::value>(std::string(""));
+			variant_ = new typed_variant<std::string, kaluun::is_iterable<std::string>::value>(std::string(""));
 			own_pointer_ = true;
 		}
 	}
 	template<class T>
 	value& operator=(const T& new_val) {
-		variant* tmp = new typed_variant<T, templater::is_iterable<T>::value>(new_val);
+		variant* tmp = new typed_variant<T, kaluun::is_iterable<T>::value>(new_val);
 		if (own_pointer_ && variant_) {
 			delete variant_;
 		}
@@ -176,15 +176,15 @@ struct context {
 //{
 //    // specialize range_mutable_iterator and range_const_iterator in namespace boost
 //    template<>
-//    struct range_mutable_iterator< templater::context::value >
+//    struct range_mutable_iterator< kaluun::context::value >
 //    {
-//        typedef templater::context::value_iterator type;
+//        typedef kaluun::context::value_iterator type;
 //    };
 //
 //    template<>
-//    struct range_const_iterator< templater::context::value >
+//    struct range_const_iterator< kaluun::context::value >
 //    {
-//        typedef templater::context::value_iterator type;
+//        typedef kaluun::context::value_iterator type;
 //    };
 //}
 

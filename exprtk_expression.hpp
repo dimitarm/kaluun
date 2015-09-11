@@ -16,7 +16,7 @@
 #ifndef EXPRTK_EXPRESSION_HPP_
 #define EXPRTK_EXPRESSION_HPP_
 
-namespace templater {
+namespace kaluun {
 
 namespace exprtk{
 
@@ -202,8 +202,6 @@ struct condition : public boost::noncopyable{
 		parser.compile(expression_string, expr.expression_);
 	}
 
-};
-
-} } //namespace exprtk::templater
+}; } }
 
 #endif /* EXPRTK_EXPRESSION_HPP_ */

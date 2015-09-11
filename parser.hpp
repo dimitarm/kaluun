@@ -23,7 +23,7 @@
 #ifndef PARSER_HPP_
 #define PARSER_HPP_
 
-namespace templater {
+namespace kaluun {
 
 template<class Template>
 struct parser {
@@ -398,8 +398,6 @@ struct parser {
 
 private:
 //utilities
-};
-
-} //namespace templater
+}; }
 
 #endif /* PARSER_HPP_ */

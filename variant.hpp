@@ -13,7 +13,7 @@
 #ifndef VARIANT_HPP_
 #define VARIANT_HPP_
 
-namespace templater {
+namespace kaluun {
 
 //http://stackoverflow.com/questions/9407367/determine-if-a-type-is-an-stl-container-at-compile-time
 //http://stackoverflow.com/questions/13830158/check-if-a-variable-is-iterable
@@ -293,7 +293,7 @@ struct typed_variant<std::string&, true> : public variant {
 
 template<class IteratorType, class ValueType>
 struct typed_variant_iterator: public variant_iterator {
-	typedef typed_variant<ValueType, templater::is_iterable<ValueType>::value> variant_type;
+	typedef typed_variant<ValueType, kaluun::is_iterable<ValueType>::value> variant_type;
 	IteratorType it_;  //cur iterator
 	mutable variant_type* variant_;
 
