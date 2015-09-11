@@ -41,8 +41,7 @@ TEST(Functional, parse1) {
 	template_type::out_type str_out;
 	template_type::context_type ctx;
 	ctx[string("x")] = string("123");
-	kaluun::parser<template_type> parser(template_text, tpl);
-	parser.parse_template();
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
 	tpl.generate(ctx, str_out);
 
 	EXPECT_STREQ("{blahblah}123qwerty{}}", str_out.str().c_str());
@@ -56,8 +55,7 @@ TEST(Functional, loop1) {
 	template_type::out_type str_out;
 	template_type::context_type ctx;
 	ctx["values"] = string("123");
-	kaluun::parser<template_type> parser(template_text, tpl);
-	parser.parse_template();
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
 	tpl.generate(ctx, str_out);
 
 	EXPECT_STREQ("123", str_out.str().c_str());
@@ -80,12 +78,9 @@ TEST(Functional, context1) {
 	values.push_back(string("3"));
 	ctx["values"] = values;
 	ctx["value2"] = 5;
-	kaluun::parser<template_type> parser(template_text, tpl);
-	parser.parse_template();
-	kaluun::parser<template_type> parser1(template_text, tpl1);
-	parser1.parse_template();
-	kaluun::parser<template_type> parser2(template_text, tpl2);
-	parser2.parse_template();
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
+	kaluun::parser<template_type>::parse_template(template_text, tpl1);
+	kaluun::parser<template_type>::parse_template(template_text, tpl2);
 	tpl.generate(ctx, str_out);
 	EXPECT_STREQ("123_5_5", str_out.str().c_str());
 
@@ -115,8 +110,7 @@ TEST(Functional, context2) {
 	values.push_back(3);
 	ctx["values"] = values;
 	ctx["value2"] = 5;
-	kaluun::parser<template_type> parser(template_text, tpl);
-	parser.parse_template();
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
 	tpl.generate(ctx, str_out);
 	EXPECT_STREQ("123_5_5", str_out.str().c_str());
 }
@@ -135,8 +129,7 @@ TEST(Functional, context2) {
 //	values.push_back(string("2"));
 //	values.push_back(string("3"));
 //	ctx["values"] = values;
-//	kaluun::parser<template_type> parser(template_text, tpl);
-//	parser.parse_template();
+//kaluun::parser<template_type>::parse_template(template_text, tpl);
 //	//ctx["value1"] = 5;
 //	tpl.generate(ctx, str_out);
 //	EXPECT_STREQ("123_5_5", str_out.str().c_str());
@@ -199,10 +192,9 @@ TEST(Functional, elif_syntax1) {
 	template_type tpl;
 	template_type::in_type template_text("abc{% if x > 5 %}biggerthanfive{% elif x > 3 %}biggerthanthree {%for x in xx%} {% else %}unknown{% endif %}efg");
 	template_type::out_type str_out;
-	kaluun::parser<template_type> parser(template_text, tpl);
 
 	try {
-		parser.parse_template();
+		kaluun::parser<template_type>::parse_template(template_text, tpl);
 		FAIL();
 	} catch (exception& ex) {
 		EXPECT_TRUE(string(ex.what()).find("template error: expected node was if or elif, got: ") != string::npos);
@@ -215,9 +207,7 @@ TEST(Functional, elif_syntax2) {
 	template_type tpl;
 	template_type::in_type template_text("{% if x > 5 %} template {% elif x < 2 %} template2 {% endif %}");
 	template_type::out_type str_out;
-	kaluun::parser<template_type> parser(template_text, tpl);
-
-	parser.parse_template();
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
 	SUCCEED();
 }
 //TEST(Functional, dummy_expression){
@@ -226,8 +216,7 @@ TEST(Functional, elif_syntax2) {
 //	template_type tpl;
 //	template_type::in_type  template_text("{% if x > 5 %}biggerthanfive{% elif x > 3 %}biggerthanthree{% else %}unknown{% endif %} {{ x + y }}");
 //	template_type::out_type str_out;
-//	kaluun::parser<template_type> parser(template_text, tpl);
-//	parser.parse_template();
+//kaluun::parser<template_type>::parse_template(template_text, tpl);
 //	template_type::context_type ctx;
 //	ctx["x"] = string("123");
 //	tpl.generate(ctx, str_out);
@@ -241,8 +230,7 @@ TEST(Functional, set) {
 	template_type tpl;
 	template_type::in_type template_text("{% set x = y%}x={{x}}");
 	template_type::out_type str_out;
-	kaluun::parser<template_type> parser(template_text, tpl);
-	parser.parse_template();
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
 	template_type::context_type ctx;
 	ctx["y"] = string("5");
 	tpl.generate(ctx, str_out);
@@ -256,8 +244,7 @@ TEST(Functional, var_node) {
 	template_type tpl;
 	template_type::in_type template_text("{{x}} {{'sss''d'\"'\" '\"'}} {{x>4}}");
 	template_type::out_type str_out;
-	kaluun::parser<template_type> parser(template_text, tpl);
-	parser.parse_template();
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
 	template_type::context_type ctx;
 	ctx["x"] = string("5");
 	tpl.generate(ctx, str_out);

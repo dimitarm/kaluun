@@ -347,7 +347,12 @@ struct parser {
 			throw exception(in_, begin, "unknown node");
 	}
 
-	void parse_template() {
+	static void parse_template(in_type& in, templ_type& template_tree) {
+		parser p(in, template_tree);
+		p.internal_parse();
+	}
+
+	void internal_parse(){
 		const_iterator_type pos = in_.begin();
 		node_with_children<context_type, out_type>* cur_level_node = &tree_.root_;
 

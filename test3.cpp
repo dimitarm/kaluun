@@ -39,8 +39,7 @@ TEST(Functional_range, parse1) {
 	ctx[key] = std::string("123");
 	std::string keyy("y");
 	ctx[keyy] = std::string("7");
-	kaluun::parser<template_type> parser(template_text, tpl);
-	parser.parse_template();
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
 	tpl.generate(ctx, str_out);
 	EXPECT_STREQ("{blahblah}123qwerty{}}", str_out.str().c_str());
 	template_text[0] = '_';
@@ -59,8 +58,7 @@ TEST(Functional, out1) {
 	template_type::out_type str_out;
 	template_type::context_type ctx;
 	ctx[std::string("x")] = std::string("123");
-	kaluun::parser<template_type> parser(template_text, tpl);
-	parser.parse_template();
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
 	tpl.generate(ctx, str_out);
 
 	EXPECT_STREQ("{blahblah}123qwerty{}}", str_out.str().c_str());
