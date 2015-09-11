@@ -14,20 +14,22 @@
 #define EXPRESSION_HPP_
 
 namespace templater {
-template<class Context, class Holder>
 struct dummy_expression {
+	template<class Holder>
 	static void parse(Holder, dummy_expression&) {
 	}
+	template<class Context>
 	std::string operator()(Context&) {
 		return "__dummy__value__";
 	}
 
 };
 
-template<class Context, class Holder>
 struct dummy_condition {
+	template<class Holder>
 	static void parse(Holder, dummy_condition&) {
 	}
+	template<class Context>
 	bool operator()(Context&) {
 		return false;
 	}

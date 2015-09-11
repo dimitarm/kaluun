@@ -13,11 +13,14 @@
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/date.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-
 using namespace std;
+
+//todo ugly! to be removed
+template<class K, class V> struct testmap: public std::map<K, V> {
+};
+
 TEST(Functional, exprtk_condition) {
-	typedef templater::template_tree<templater::context<string>, string, stringstream, templater::exprtk::expression<templater::context<string> >,
-			templater::exprtk::condition<templater::context<string> >, string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::exprtk::expression<templater::context<string, testmap>>, templater::exprtk::condition<templater::context<string, testmap>>, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% set x = 5 %}{% if x > 5 %}bigger than five{% else %}less than five{% endif %}");
@@ -30,8 +33,7 @@ TEST(Functional, exprtk_condition) {
 }
 
 TEST(Functional, exprtk_expression) {
-	typedef templater::template_tree<templater::context<string>, string, stringstream, templater::exprtk::expression<templater::context<string> >,
-			templater::dummy_condition<templater::context<string>, string>, string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::exprtk::expression<templater::context<string, testmap>>, templater::exprtk::condition<templater::context<string, testmap>>, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{{b}} {% set x = 5 %}{% set y = 10 %}{% set z = x + y %}{{z}}{% set z = a + 1%} {{z}}{% set z = b%} {{z}} {{'sss'}} {{ x<y }}");
@@ -44,8 +46,4 @@ TEST(Functional, exprtk_expression) {
 	tpl.generate(ctx, str_out);
 	EXPECT_STREQ("26.62 15 27 26.620000000000001 sss 1", str_out.str().c_str());
 }
-
-
-
-
 

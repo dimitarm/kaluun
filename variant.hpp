@@ -54,7 +54,7 @@ struct variant: public boost::noncopyable {
 		}
 	};
 	/////////////////////////
-	const char* type_;
+	const char* type_;  //todo remove type info
 	variant(const char* type) :
 			type_(type) {
 	}
@@ -176,8 +176,8 @@ struct typed_variant<T, false> : public variant {
 
 template<class T>
 struct typed_variant<T&, false> : public variant {
-	T value_;
-	typed_variant(const T val) :
+	T& value_;
+	typed_variant(T& val) :
 			variant(typeid(T).name()), value_(val) {
 		static_assert(std::is_arithmetic<T>::value, "Is an integral type.");
 	}
@@ -255,10 +255,9 @@ struct typed_variant<std::string, true> : public variant {
 
 template<>
 struct typed_variant<std::string&, true> : public variant {
-	std::string value_;
-	typed_variant(const std::string& val) :
-			variant(typeid(std::string).name()) {
-		value_ = val;
+	std::string& value_;
+	typed_variant(std::string& val) :
+			variant(typeid(std::string).name()),value_(val) {
 	}
 
 	variant* clone() const {
@@ -320,7 +319,7 @@ struct typed_variant_iterator: public variant_iterator {
 	}
 	virtual variant& operator*() const {
 		if (!variant_)
-			variant_ = new variant_type(*it_);  //BOOM! if it_ points to illegal location
+			variant_ = new variant_type(*it_);
 		return *variant_;
 	}
 

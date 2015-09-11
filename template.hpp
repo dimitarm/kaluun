@@ -5,7 +5,7 @@
  *      Author: dimitar
  */
 
-#include <vector>
+#include <list>
 #include <string>
 #include <memory>
 #include "context.hpp"
@@ -33,7 +33,7 @@ struct node: public boost::noncopyable {
 template<class Context, class Out>
 struct node_with_children: public node<Context, Out> {
 
-	std::vector<std::shared_ptr<node<Context, Out>> > child_nodes_;
+	std::list<std::shared_ptr<node<Context, Out>> > child_nodes_;
 
 	void add_child(std::shared_ptr<node<Context, Out> > child) {
 		child_nodes_.push_back(child);
@@ -56,9 +56,22 @@ struct text_node: public node<Context, Out> {
 	Holder text_;
 
 	void operator()(Context&, Out& out) {
-		out << text_;  //todo improve performance with iterator_range  holder
+		out << text_;
 	}
+
 };
+
+//specialize this for performance reasons
+template<class Context>
+struct text_node<Context, std::stringstream, boost::iterator_range<std::string::const_iterator> >: public node<Context, std::stringstream> {
+	boost::iterator_range<std::string::const_iterator> text_;
+
+	void operator()(Context&, std::stringstream& out) {
+		out.write(&(*text_.begin()), text_.size());
+	}
+
+};
+
 
 //set
 template<class Context, class Out, class Expression, class Holder>
@@ -152,19 +165,19 @@ struct root_node: public node_with_children<Context, Out> {
 	}
 };
 
-//template<class Context, class In, class Out, class Expression, class Condition, class Holder = std::string>
-template<class Context, class In, class Out, class Expression, class Condition, class Holder>
+template<template <typename, typename> class Container, class In, class Out, class Expression, class Condition, class Holder>
 struct template_tree {
-	typedef Context context_type;
+	typedef context<Holder, Container>	context_type;
+
 	typedef Out out_type;
 	typedef In in_type;
 	typedef Holder holder_type;
 	typedef Expression expression_type;
 	typedef Condition condition_type;
 
-	root_node<Context, Out> root_;
+	root_node<context_type, Out> root_;
 
-	void generate(Context& ctx, Out& out) {
+	void generate(context_type& ctx, Out& out) {
 		root_(ctx, out);
 	}
 };

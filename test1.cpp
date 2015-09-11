@@ -11,16 +11,36 @@
 #include "template.hpp"
 #include "expression.hpp"
 #include <list>
+#include <map>
+#include <cassert>
+
+using namespace std;
+
+template <class K, class V> struct testmap {
+	typedef map<K, V> map_type;
+	map_type values_;
+	V& operator[](const K& key){
+		return values_[key];
+	}
+
+	typename map_type::iterator end(){
+		return values_.end();
+	}
+
+	typename map_type::iterator find(const K& key){
+		return values_.find(key);
+	}
+
+};
 
 TEST(Functional, parse1) {
-	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{blahblah}{{x}}qwerty{}}");
 	template_type::out_type str_out;
 	template_type::context_type ctx;
-	ctx[std::string("x")] = std::string("123");
+	ctx[string("x")] = string("123");
 	templater::parser<template_type> parser(template_text, tpl);
 	parser.parse_template();
 	tpl.generate(ctx, str_out);
@@ -29,14 +49,13 @@ TEST(Functional, parse1) {
 }
 
 TEST(Functional, loop1) {
-	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% for v in values %}{{v}}{%endfor%}");
 	template_type::out_type str_out;
 	template_type::context_type ctx;
-	ctx["values"] = std::string("123");
+	ctx["values"] = string("123");
 	templater::parser<template_type> parser(template_text, tpl);
 	parser.parse_template();
 	tpl.generate(ctx, str_out);
@@ -45,8 +64,7 @@ TEST(Functional, loop1) {
 }
 
 TEST(Functional, context1) {
-	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type tpl1;
@@ -56,10 +74,10 @@ TEST(Functional, context1) {
 	template_type::in_type template_text2("{% for v in vv %}{{v}}{% endfor %}");
 	template_type::out_type str_out;
 	template_type::context_type ctx;
-	std::list<std::string> values;
-	values.push_back(std::string("1"));
-	values.push_back(std::string("2"));
-	values.push_back(std::string("3"));
+	list<string> values;
+	values.push_back(string("1"));
+	values.push_back(string("2"));
+	values.push_back(string("3"));
 	ctx["values"] = values;
 	ctx["value2"] = 5;
 	templater::parser<template_type> parser(template_text, tpl);
@@ -71,22 +89,27 @@ TEST(Functional, context1) {
 	tpl.generate(ctx, str_out);
 	EXPECT_STREQ("123_5_5", str_out.str().c_str());
 
-	try { tpl1.generate(ctx, str_out); }
-	catch(std::exception& ex) {	EXPECT_TRUE(std::string(ex.what()).find("no value for: v") != std::string::npos); }
+	try {
+		tpl1.generate(ctx, str_out);
+	} catch (exception& ex) {
+		EXPECT_TRUE(string(ex.what()).find("no value for: v") != string::npos);
+	}
 
-	try { tpl2.generate(ctx, str_out); }
-	catch(std::exception& ex) {	EXPECT_TRUE(std::string(ex.what()).find("no value for: vv") != std::string::npos); }
+	try {
+		tpl2.generate(ctx, str_out);
+	} catch (exception& ex) {
+		EXPECT_TRUE(string(ex.what()).find("no value for: vv") != string::npos);
+	}
 }
 
 TEST(Functional, context2) {
-	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% for v in values %}{{v}}{%endfor%}_{% for v in value2 %}{{v}}{%endfor%}_{{value2}}");
 	template_type::out_type str_out;
 	template_type::context_type ctx;
-	std::list<int> values;
+	list<int> values;
 	values.push_back(1);
 	values.push_back(2);
 	values.push_back(3);
@@ -100,17 +123,17 @@ TEST(Functional, context2) {
 
 //
 //TEST(Functional, context3) {
-//	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-//			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+//	typedef templater::template_tree<templater::context<string>, string, stringstream, templater::dummy_expression<templater::context<string>, string>,
+//			templater::dummy_condition<templater::context<string>, string>, string> template_type;
 //
 //	template_type tpl;
 //	template_type::in_type template_text("{% for v in values %}{% set values = 5 %}{%endfor%}");
 //	template_type::out_type str_out;
 //	template_type::context_type ctx;
-//	std::list<std::string> values;
-//	values.push_back(std::string("1"));
-//	values.push_back(std::string("2"));
-//	values.push_back(std::string("3"));
+//	list<string> values;
+//	values.push_back(string("1"));
+//	values.push_back(string("2"));
+//	values.push_back(string("3"));
 //	ctx["values"] = values;
 //	templater::parser<template_type> parser(template_text, tpl);
 //	parser.parse_template();
@@ -119,12 +142,12 @@ TEST(Functional, context2) {
 //	EXPECT_STREQ("123_5_5", str_out.str().c_str());
 //}
 
-//TEST(Functional, context){
-//	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>, templater::dummy_condition<templater::context, std::string>, std::string> template_type;
+//TEST(Functional, context_values_outside_context){
+//	typedef templater::template_tree<templater::context<string>, string, stringstream, templater::dummy_expression<templater::context<string>, string>, templater::dummy_condition<templater::context, string>, string> template_type;
 //	template_type::context_type::value values;
 //	{
 //		template_type::context_type ctx;
-//		ctx["values"] = std::string("123");
+//		ctx["values"] = string("123");
 //		values = ctx["values"];
 //	}
 //	values.to_string();
@@ -134,11 +157,13 @@ TEST(Functional, context2) {
 //
 
 TEST(Functional, context4) {
-	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
 
 	template_type::context_type ctx;
-	std::list<std::string> ints; ints.push_back("1");ints.push_back("2");ints.push_back("3");
+	list<string> ints;
+	ints.push_back("1");
+	ints.push_back("2");
+	ints.push_back("3");
 	ctx["ints"] = ints;
 	auto it = ctx["ints"].begin();
 
@@ -159,17 +184,17 @@ TEST(Functional, context4) {
 	EXPECT_STREQ("3", (*it2).to_string().c_str());
 	EXPECT_STREQ("2", (*it).to_string().c_str());
 	it2++;
-	it++; it++;
+	it++;
+	it++;
 	EXPECT_TRUE(it == ctx["ints"].end());
 	EXPECT_TRUE(it2 == ctx["ints"].end());
-	ctx["floats"] = std::list<float>();
+	ctx["floats"] = list<float>();
 	EXPECT_TRUE(ctx["floats"].end() != ctx["ints"].end());
 	EXPECT_TRUE(ctx["floats"].end() == ctx["floats"].end());
 }
 
 TEST(Functional, elif_syntax1) {
-	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("abc{% if x > 5 %}biggerthanfive{% elif x > 3 %}biggerthanthree {%for x in xx%} {% else %}unknown{% endif %}efg");
@@ -179,14 +204,13 @@ TEST(Functional, elif_syntax1) {
 	try {
 		parser.parse_template();
 		FAIL();
-	} catch (std::exception& ex) {
-		EXPECT_TRUE(std::string(ex.what()).find("template error: expected node was if or elif, got: ") != std::string::npos);
+	} catch (exception& ex) {
+		EXPECT_TRUE(string(ex.what()).find("template error: expected node was if or elif, got: ") != string::npos);
 	}
 }
 
 TEST(Functional, elif_syntax2) {
-	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% if x > 5 %} template {% elif x < 2 %} template2 {% endif %}");
@@ -197,7 +221,7 @@ TEST(Functional, elif_syntax2) {
 	SUCCEED();
 }
 //TEST(Functional, dummy_expression){
-//	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>, templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+//	typedef templater::template_tree<templater::context<string>, string, stringstream, templater::dummy_expression<templater::context<string>, string>, templater::dummy_condition<templater::context<string>, string>, string> template_type;
 //
 //	template_type tpl;
 //	template_type::in_type  template_text("{% if x > 5 %}biggerthanfive{% elif x > 3 %}biggerthanthree{% else %}unknown{% endif %} {{ x + y }}");
@@ -205,15 +229,14 @@ TEST(Functional, elif_syntax2) {
 //	templater::parser<template_type> parser(template_text, tpl);
 //	parser.parse_template();
 //	template_type::context_type ctx;
-//	ctx["x"] = std::string("123");
+//	ctx["x"] = string("123");
 //	tpl.generate(ctx, str_out);
 //
 //	EXPECT_STREQ("unknown __dummy__value__", str_out.str().c_str());
 //}
 
 TEST(Functional, set) {
-	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% set x = y%}x={{x}}");
@@ -221,15 +244,14 @@ TEST(Functional, set) {
 	templater::parser<template_type> parser(template_text, tpl);
 	parser.parse_template();
 	template_type::context_type ctx;
-	ctx["y"] = std::string("5");
+	ctx["y"] = string("5");
 	tpl.generate(ctx, str_out);
 
 	EXPECT_STREQ("x=__dummy__value__", str_out.str().c_str());
 }
 
 TEST(Functional, var_node) {
-	typedef templater::template_tree<templater::context<std::string>, std::string, std::stringstream, templater::dummy_expression<templater::context<std::string>, std::string>,
-			templater::dummy_condition<templater::context<std::string>, std::string>, std::string> template_type;
+	typedef templater::template_tree<testmap, string, stringstream, templater::dummy_expression, templater::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{{x}} {{'sss''d'\"'\" '\"'}} {{x>4}}");
@@ -237,19 +259,23 @@ TEST(Functional, var_node) {
 	templater::parser<template_type> parser(template_text, tpl);
 	parser.parse_template();
 	template_type::context_type ctx;
-	ctx["x"] = std::string("5");
+	ctx["x"] = string("5");
 	tpl.generate(ctx, str_out);
 
 	EXPECT_STREQ("5 sssd' \" __dummy__value__", str_out.str().c_str());
 }
 
 int main(int argc, char **argv) {
-	std::time_t now = std::time(nullptr);
-	::testing::GTEST_FLAG(output) = std::string("xml:./test_output/").append(std::to_string(now)).append(".xml");
+#ifdef NDEBUG
+	time_t now = time(nullptr);
+	string nows = to_string(now);
+	::testing::GTEST_FLAG(output) = string("xml:./test_output/").append(nows.substr(nows.size() - 6)).append(".xml");
+#endif
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
 
 //todo improve context structure
 //todo bring context while parsing
+//todo support for unicode wchar
 
