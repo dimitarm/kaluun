@@ -83,7 +83,7 @@ struct parser {
 			in_(in), tree_(template_tree) {
 	}
 
-	const_iterator_type create_text_node(const_iterator_type pos, node_with_children<context_type, out_type>& cur_level_node) {
+	const_iterator_type create_text_node(const_iterator_type pos, node_with_children<context_type, out_type>* cur_level_node) {
 		text_node<context_type, out_type, holder_type>* tx_node = new text_node<context_type, out_type, holder_type>;
 		const_iterator_type begin = pos;
 
@@ -105,7 +105,7 @@ struct parser {
 			tx_node->text_ = std::move(pure_text);
 		}
 		if (tx_node->text_.size() > 0)
-			cur_level_node.add_child(tx_node);
+			cur_level_node->add_child(tx_node);
 		else
 			delete tx_node;
 		return pos;
@@ -215,7 +215,7 @@ struct parser {
 		return res;
 	}
 
-	const_iterator_type create_variable_node(const_iterator_type pos, node_with_children<context_type, out_type>& cur_level_node) {
+	const_iterator_type create_variable_node(const_iterator_type pos, node_with_children<context_type, out_type>* cur_level_node) {
 		holder_type expr_text;
 		std::string unquoted_expr_text;
 
@@ -235,7 +235,7 @@ struct parser {
 				v_node = ex_node;
 			}
 		}
-		cur_level_node.add_child(v_node);
+		cur_level_node->add_child(v_node);
 
 		return pos;
 	}
@@ -251,37 +251,35 @@ struct parser {
 	}
 
 	node<context_type, out_type>* create_loop_node(boost::iterator_range<const_iterator_type>& var, boost::iterator_range<const_iterator_type>& local_var,
-			node_with_children<context_type, out_type>& cur_level_node) { //for row in rows
+			node_with_children<context_type, out_type>* cur_level_node) { //for row in rows
 		for_loop_node<context_type, out_type, holder_type>* loop_node = new for_loop_node<context_type, out_type, holder_type>;
 		loop_node->loop_variable_ = holder_type(var.begin(), var.end());
 		loop_node->local_loop_variable_ = holder_type(local_var.begin(), local_var.end());
-		cur_level_node.add_child(loop_node);
+		cur_level_node->add_child(loop_node);
 		return loop_node;
 	}
 
 	node_with_children<context_type, out_type>* create_if_condition_node(const_iterator_type expr_begin, const_iterator_type expr_end, bool ifnode,
-			node_with_children<context_type, out_type>& cur_level_node) {       //for row in rows
+			node_with_children<context_type, out_type>* cur_level_node) {       //for row in rows
 		holder_type expression_string(expr_begin, expr_end);
 
 		if_node<context_type, out_type, condition_type>* c_node;
 		if (ifnode)
 			c_node = new if_node<context_type, out_type, condition_type>;
 		else {
+			if_node<context_type, out_type, condition_type>* ifnode = dynamic_cast<if_node<context_type, out_type, condition_type>*>(cur_level_node);
+			if(!ifnode)
+				throw exception(in_, expr_begin, std::string("template error: expected node was if or elif, got: ") + typeid(*cur_level_node).name());
 			c_node = new elif_node<context_type, out_type, condition_type>;
-			try {
-				if_node<context_type, out_type, condition_type>& ifnode = dynamic_cast<if_node<context_type, out_type, condition_type>&>(cur_level_node);
-				ifnode.else_node_ = c_node;
-			} catch (std::bad_cast&) {
-				throw exception(in_, expr_begin, std::string("template error: expected node was if or elif, got: ") + typeid(cur_level_node).name());
-			}
+			ifnode->else_node_ = c_node;
 		}
 		condition_type::parse(expression_string, c_node->condition_);
-		cur_level_node.add_child(c_node);
+		cur_level_node->add_child(c_node);
 		return c_node;
 	}
 
 	set_node<context_type, out_type, expression_type, holder_type>* create_set_node(const_iterator_type begin, const_iterator_type end,
-			node_with_children<context_type, out_type>& cur_level_node) {
+			node_with_children<context_type, out_type>* cur_level_node) {
 		const_iterator_type eq_pos = boost::range::find(boost::make_iterator_range(begin, end), '=');
 		if (eq_pos != end) {
 			auto variable = boost::trim_copy_if(boost::make_iterator_range(begin, eq_pos), boost::is_any_of(" \t")); //variable name
@@ -290,14 +288,14 @@ struct parser {
 			set_node<context_type, out_type, expression_type, holder_type> * node_ptr = new set_node<context_type, out_type, expression_type, holder_type>;
 			node_ptr->variable_name_ = holder_type(variable.begin(), variable.end());
 			expression_type::parse(holder_type(expression_string.begin(), expression_string.end()), node_ptr->expression_);
-			cur_level_node.add_child(node_ptr);
+			cur_level_node->add_child(node_ptr);
 			return node_ptr;
 		} else
 			throw exception(in_, begin, "cannot parse set node");
 	}
 
 	std::pair<node<context_type, out_type>*, int> create_statement_node(const_iterator_type begin, const_iterator_type end,
-			node_with_children<context_type, out_type>& cur_level_node) {
+			node_with_children<context_type, out_type>* cur_level_node) {
 		boost::iterator_range<const_iterator_type> node_text(begin, end);
 
 		std::vector<boost::iterator_range<const_iterator_type> > tokens(5); // Search for tokens
@@ -320,20 +318,19 @@ struct parser {
 			return std::make_pair(create_if_condition_node(tokens[1].begin(), tokens.back().end(), false, cur_level_node), 1);
 		//else
 		else if (tokens[0] == TOKEN_ELSE && tokens.size() == 1) {
-			try {
-				if_node<context_type, out_type, condition_type>& ifnode = dynamic_cast<if_node<context_type, out_type, condition_type>&>(cur_level_node);
-				node_with_children<context_type, out_type> * else_node  = new node_with_children<context_type, out_type>;
-				ifnode.else_node_ = else_node;
-				cur_level_node.add_child(else_node);
+			if_node<context_type, out_type, condition_type>* ifnode = dynamic_cast<if_node<context_type, out_type, condition_type>*>(cur_level_node);
+			if (ifnode) {
+				node_with_children<context_type, out_type> * else_node = new node_with_children<context_type, out_type>;
+				ifnode->else_node_ = else_node;
+				cur_level_node->add_child(else_node);
 				return std::make_pair(else_node, 1);
-			} catch (std::bad_cast&) {
-				throw exception(in_, begin, std::string("template error: expected node was if or elif, got: ") + typeid(cur_level_node).name());
-			}
+			} else
+				throw exception(in_, begin, std::string("template error: expected node was if or elif, got: ") + typeid(*cur_level_node).name());
 		}
 		//endif
 		else if (tokens[0] == TOKEN_ENDIF && tokens.size() == 1) {
 			int count = -1;
-			node_with_children<context_type, out_type>* n = &cur_level_node;
+			node_with_children<context_type, out_type>* n = cur_level_node;
 			while (typeid(*n) != typeid(if_node<context_type, out_type, condition_type> )) {
 				if (n->parent_ == NULL)
 					throw exception(in_, begin, std::string("not valid template"));
@@ -360,12 +357,12 @@ struct parser {
 		node_with_children<context_type, out_type>* cur_level_node = &tree_.root_;
 
 		while (pos != in_.end()) {
-			pos = create_text_node(pos, *cur_level_node);  //text node
+			pos = create_text_node(pos, cur_level_node);  //text node
 			if (pos == in_.end())
 				break;
 			if (*pos == OPEN_BRACKET) {	//variable node
 				pos++;
-				pos = create_variable_node(pos, *cur_level_node);
+				pos = create_variable_node(pos, cur_level_node);
 			} else if (*pos == PERCENT) { 	//statement node
 				pos++;
 				const_iterator_type begin = pos;
@@ -375,7 +372,7 @@ struct parser {
 					throw exception(in_, pos, std::string("cannot find second open bracket"));
 				node<context_type, out_type> * st_node;
 				int level;
-				std::tie(st_node, level) = create_statement_node(begin, pos, *cur_level_node);
+				std::tie(st_node, level) = create_statement_node(begin, pos, cur_level_node);
 				//if (level == 0) //just add child node - stay on that level
 				//nothing to do. node was added to cur_level_node
 				if (level < 0) { //go as many levels up as necessary
