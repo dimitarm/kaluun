@@ -6,7 +6,6 @@
  */
 
 #include <string>
-#include <memory>
 #include <boost/noncopyable.hpp>
 #include "variant.hpp"
 

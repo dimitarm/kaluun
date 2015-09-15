@@ -7,7 +7,6 @@
 
 #include <list>
 #include <string>
-#include <memory>
 #include "context.hpp"
 #include <boost/noncopyable.hpp>
 #include <boost/range.hpp>
@@ -33,13 +32,17 @@ struct node: public boost::noncopyable {
 template<class Context, class Out>
 struct node_with_children: public node<Context, Out> {
 
-	std::list<std::shared_ptr<node<Context, Out>> > child_nodes_;
+	std::list<node<Context, Out>* > child_nodes_;
 
-	void add_child(std::shared_ptr<node<Context, Out> > child) {
+	void add_child(node<Context, Out>* child) {
 		child_nodes_.push_back(child);
 		child->parent_ = this;
 	}
 	virtual ~node_with_children() {
+		BOOST_FOREACH( auto n, child_nodes_)
+		    {
+		        delete n;
+		    }
 	}  //need to have this, otherwise type is not polymorphic
 
 	virtual void operator()(Context& ctx, Out& out) {
@@ -120,19 +123,19 @@ struct for_loop_node: public node_with_children<Context, Out> {
 //if
 template<class Context, class Out, class Condition>
 struct if_node: public node_with_children<Context, Out> {
-	std::shared_ptr<node<Context, Out> > else_node_;
+	node<Context, Out>* else_node_ = nullptr;
 	Condition condition_;
 
 	void operator()(Context& ctx, Out& out) {
 		if (condition_(ctx)) {
 			//render all sub nodes without the else node
 			for (auto it = this->child_nodes_.begin(); it != this->child_nodes_.end(); it++) {
-				if (it->get() != else_node_.get()) {
+				if (*it != else_node_) {
 					(*it)->operator()(ctx, out);
 				}
 			}
 		} else
-			if(else_node_.get()){ //check if we have else node!
+			if(else_node_){ //check if we have else node!
 				else_node_->operator()(ctx, out);
 			}
 	}

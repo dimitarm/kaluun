@@ -67,14 +67,14 @@ struct parser {
 	const char WHITE_CHAR = ' ';
 
 //tokens
-	const char TOKEN_FOR[3] = { 'f' , 'o', 'r'};
-	const char TOKEN_IN[2] = {'i','n'};
-	const char TOKEN_ENDFOR[6] = {'e','n','d','f','o','r'};
-	const char TOKEN_IF[2] = {'i','f'};
-	const char TOKEN_ELIF[4] = {'e','l','i','f'};
-	const char TOKEN_ELSE[4] = {'e','l','s','e'};
-	const char TOKEN_ENDIF[5] = {'e','n','d','i','f'};
-	const char TOKEN_SET[3] = {'s','e','t'};
+	const char TOKEN_FOR[3] = { 'f', 'o', 'r' };
+	const char TOKEN_IN[2] = { 'i', 'n' };
+	const char TOKEN_ENDFOR[6] = { 'e', 'n', 'd', 'f', 'o', 'r' };
+	const char TOKEN_IF[2] = { 'i', 'f' };
+	const char TOKEN_ELIF[4] = { 'e', 'l', 'i', 'f' };
+	const char TOKEN_ELSE[4] = { 'e', 'l', 's', 'e' };
+	const char TOKEN_ENDIF[5] = { 'e', 'n', 'd', 'i', 'f' };
+	const char TOKEN_SET[3] = { 's', 'e', 't' };
 
 	in_type& in_;
 	templ_type& tree_;
@@ -84,7 +84,7 @@ struct parser {
 	}
 
 	const_iterator_type create_text_node(const_iterator_type pos, node_with_children<context_type, out_type>& cur_level_node) {
-		std::shared_ptr<text_node<context_type, out_type, holder_type> > tx_node(new text_node<context_type, out_type, holder_type>);
+		text_node<context_type, out_type, holder_type>* tx_node = new text_node<context_type, out_type, holder_type>;
 		const_iterator_type begin = pos;
 
 		bool open_bracket = false;
@@ -106,6 +106,8 @@ struct parser {
 		}
 		if (tx_node->text_.size() > 0)
 			cur_level_node.add_child(tx_node);
+		else
+			delete tx_node;
 		return pos;
 	}
 
@@ -217,20 +219,20 @@ struct parser {
 		holder_type expr_text;
 		std::string unquoted_expr_text;
 
-		std::shared_ptr<node<context_type, out_type> > v_node;
+		node<context_type, out_type>* v_node;
 		if (parse_expression(pos, expr_text, unquoted_expr_text)) {
 			text_node<context_type, out_type, std::string>* node = new text_node<context_type, out_type, std::string>;
-			v_node.reset(node);
+			v_node = node;
 			node->text_ = unquoted_expr_text;
 		} else {
 			if (std::all_of(std::begin(expr_text), std::end(expr_text), isalnum)) { //todo use better algorithm to check if variable or not
 				variable_node<context_type, out_type, holder_type>* node = new variable_node<context_type, out_type, holder_type>;
-				v_node.reset(node);
+				v_node = node;
 				node->name_ = expr_text;
 			} else {
 				expression_node<context_type, out_type, expression_type>* ex_node = new expression_node<context_type, out_type, expression_type>;
 				expression_type::parse(expr_text, ex_node->expression_);
-				v_node.reset(ex_node);
+				v_node = ex_node;
 			}
 		}
 		cur_level_node.add_child(v_node);
@@ -248,23 +250,24 @@ struct parser {
 		return pos;
 	}
 
-	std::shared_ptr<node<context_type, out_type> > create_loop_node(boost::iterator_range<const_iterator_type>& var, boost::iterator_range<const_iterator_type>& local_var, node_with_children<context_type, out_type>& cur_level_node) { //for row in rows
-		std::shared_ptr<for_loop_node<context_type, out_type, holder_type> > loop_node(new for_loop_node<context_type, out_type, holder_type>);
+	node<context_type, out_type>* create_loop_node(boost::iterator_range<const_iterator_type>& var, boost::iterator_range<const_iterator_type>& local_var,
+			node_with_children<context_type, out_type>& cur_level_node) { //for row in rows
+		for_loop_node<context_type, out_type, holder_type>* loop_node = new for_loop_node<context_type, out_type, holder_type>;
 		loop_node->loop_variable_ = holder_type(var.begin(), var.end());
 		loop_node->local_loop_variable_ = holder_type(local_var.begin(), local_var.end());
 		cur_level_node.add_child(loop_node);
 		return loop_node;
 	}
 
-	std::shared_ptr<node_with_children<context_type, out_type> > create_if_condition_node(const_iterator_type expr_begin, const_iterator_type expr_end, bool ifnode,
+	node_with_children<context_type, out_type>* create_if_condition_node(const_iterator_type expr_begin, const_iterator_type expr_end, bool ifnode,
 			node_with_children<context_type, out_type>& cur_level_node) {       //for row in rows
 		holder_type expression_string(expr_begin, expr_end);
 
-		std::shared_ptr<if_node<context_type, out_type, condition_type> > c_node;
+		if_node<context_type, out_type, condition_type>* c_node;
 		if (ifnode)
-			c_node.reset(new if_node<context_type, out_type, condition_type>);
+			c_node = new if_node<context_type, out_type, condition_type>;
 		else {
-			c_node.reset(new elif_node<context_type, out_type, condition_type>);
+			c_node = new elif_node<context_type, out_type, condition_type>;
 			try {
 				if_node<context_type, out_type, condition_type>& ifnode = dynamic_cast<if_node<context_type, out_type, condition_type>&>(cur_level_node);
 				ifnode.else_node_ = c_node;
@@ -277,13 +280,14 @@ struct parser {
 		return c_node;
 	}
 
-	std::shared_ptr<set_node<context_type, out_type, expression_type, holder_type> > create_set_node(const_iterator_type begin, const_iterator_type end, node_with_children<context_type, out_type>& cur_level_node) {
+	set_node<context_type, out_type, expression_type, holder_type>* create_set_node(const_iterator_type begin, const_iterator_type end,
+			node_with_children<context_type, out_type>& cur_level_node) {
 		const_iterator_type eq_pos = boost::range::find(boost::make_iterator_range(begin, end), '=');
-		if(eq_pos != end){
+		if (eq_pos != end) {
 			auto variable = boost::trim_copy_if(boost::make_iterator_range(begin, eq_pos), boost::is_any_of(" \t")); //variable name
 			auto expression_string = boost::trim_copy_if(boost::make_iterator_range(eq_pos + 1, end), boost::is_any_of(" \t")); //expression string
 
-			std::shared_ptr<set_node<context_type, out_type, expression_type, holder_type> > node_ptr(new set_node<context_type, out_type, expression_type, holder_type>);
+			set_node<context_type, out_type, expression_type, holder_type> * node_ptr = new set_node<context_type, out_type, expression_type, holder_type>;
 			node_ptr->variable_name_ = holder_type(variable.begin(), variable.end());
 			expression_type::parse(holder_type(expression_string.begin(), expression_string.end()), node_ptr->expression_);
 			cur_level_node.add_child(node_ptr);
@@ -292,7 +296,7 @@ struct parser {
 			throw exception(in_, begin, "cannot parse set node");
 	}
 
-	std::pair<std::shared_ptr<node<context_type, out_type> >, int> create_statement_node(const_iterator_type begin, const_iterator_type end,
+	std::pair<node<context_type, out_type>*, int> create_statement_node(const_iterator_type begin, const_iterator_type end,
 			node_with_children<context_type, out_type>& cur_level_node) {
 		boost::iterator_range<const_iterator_type> node_text(begin, end);
 
@@ -308,7 +312,7 @@ struct parser {
 			return std::make_pair(create_loop_node(tokens[3], tokens[1], cur_level_node), 1);
 		//endfor
 		else if (tokens[0] == TOKEN_ENDFOR && tokens.size() == 1)
-			return std::make_pair(std::shared_ptr<node<context_type, out_type> >(NULL), -1);
+			return std::make_pair(nullptr, -1);
 		//if, elif
 		else if (tokens[0] == TOKEN_IF && tokens.size() > 1)
 			return std::make_pair(create_if_condition_node(tokens[1].begin(), tokens.back().end(), true, cur_level_node), 1);
@@ -318,7 +322,7 @@ struct parser {
 		else if (tokens[0] == TOKEN_ELSE && tokens.size() == 1) {
 			try {
 				if_node<context_type, out_type, condition_type>& ifnode = dynamic_cast<if_node<context_type, out_type, condition_type>&>(cur_level_node);
-				std::shared_ptr<node_with_children<context_type, out_type> > else_node(new node_with_children<context_type, out_type>);
+				node_with_children<context_type, out_type> * else_node  = new node_with_children<context_type, out_type>;
 				ifnode.else_node_ = else_node;
 				cur_level_node.add_child(else_node);
 				return std::make_pair(else_node, 1);
@@ -337,13 +341,12 @@ struct parser {
 				count--;
 			}
 
-			return std::make_pair(std::shared_ptr<node<context_type, out_type> >(NULL), count);
+			return std::make_pair(nullptr, count);
 		}
 		//set
 		else if (tokens[0] == TOKEN_SET) {
 			return std::make_pair(create_set_node(tokens[1].begin(), tokens.back().end(), cur_level_node), 0);
-		}
-		else
+		} else
 			throw exception(in_, begin, "unknown node");
 	}
 
@@ -352,7 +355,7 @@ struct parser {
 		p.internal_parse();
 	}
 
-	void internal_parse(){
+	void internal_parse() {
 		const_iterator_type pos = in_.begin();
 		node_with_children<context_type, out_type>* cur_level_node = &tree_.root_;
 
@@ -370,7 +373,7 @@ struct parser {
 				}
 				if (pos == in_.end())
 					throw exception(in_, pos, std::string("cannot find second open bracket"));
-				std::shared_ptr<node<context_type, out_type> > st_node;
+				node<context_type, out_type> * st_node;
 				int level;
 				std::tie(st_node, level) = create_statement_node(begin, pos, *cur_level_node);
 				//if (level == 0) //just add child node - stay on that level
@@ -383,9 +386,9 @@ struct parser {
 						level++;
 					}
 				} else if (level == 1) {  //add 1 more level
-					if (!dynamic_cast<node_with_children<context_type, out_type>*>(st_node.get()))
-						throw exception(in_, pos, std::string("node_with_children_expected, got: ") + typeid(*(st_node.get())).name());
-					cur_level_node = static_cast<node_with_children<context_type, out_type>*>(st_node.get());
+					if (!dynamic_cast<node_with_children<context_type, out_type>*>(st_node))
+						throw exception(in_, pos, std::string("node_with_children_expected, got: ") + typeid(*(st_node)).name());
+					cur_level_node = static_cast<node_with_children<context_type, out_type>*>(st_node);
 				}
 				pos++;
 				if (*pos != CLOSE_BRACKET)
@@ -403,6 +406,7 @@ struct parser {
 
 private:
 //utilities
-}; }
+};
+}
 
 #endif /* PARSER_HPP_ */
