@@ -93,7 +93,7 @@ struct variable_node: public node<Context, Out> {
 	void operator()(Context& ctx, Out& out) {
 		if(!ctx.has(name_))
 			throw std::logic_error(std::string("no value for: ").append(std::begin(name_), std::end(name_)));
-		out << ctx[name_].to_string();//todo remove to_string
+		out << ctx[name_];
 	}
 };
 

@@ -64,10 +64,10 @@ struct value_iterator {
 };
 
 struct value {
-	variant* variant_;
-	bool own_pointer_;
+	mutable variant* variant_;
+	mutable bool own_pointer_;
 
-	//todo values cannot live outside their context!!
+	//values cannot live outside their context!!
 	value() :
 			variant_(nullptr), own_pointer_(false) {
 	}
@@ -99,13 +99,12 @@ struct value {
 		set_default_value();
 		return value_iterator<value>(variant_->end());
 	}
-	//todo overload common operators
-	std::string to_string() {
+	std::string to_string() const {
 		set_default_value();
 		return variant_->to_string();
 	}
 
-	void set_default_value() { //dummy default value lazily set to avoid unnecessary object creation
+	void set_default_value() const { //dummy default value lazily set to avoid unnecessary object creation
 		if (!variant_) {
 			variant_ = new typed_variant<std::string, kaluun::is_iterable<std::string>::value>(std::string(""));
 			own_pointer_ = true;
@@ -122,6 +121,12 @@ struct value {
 		return *this;
 	}
 };
+
+template<class T>
+T& operator<<(T& str, const value& val){
+	str << val.to_string();
+	return str;
+}
 
 template<class Holder, template<typename, typename > class Container>
 struct context {
