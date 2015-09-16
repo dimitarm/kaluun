@@ -6,13 +6,109 @@
  */
 
 #include <string>
+#include <list>
 #include <boost/noncopyable.hpp>
 #include "variant.hpp"
+#include "rapidjson/reader.h"
 
 #ifndef CONTEXT_HPP_
 #define CONTEXT_HPP_
 
 namespace kaluun {
+
+template<class Context>
+struct JsonHandler {
+	static const char delimiter = '.';  //todo problem if some variables have dot in their names
+	Context& context_;
+	std::string cur_obj_;
+	std::string cur_path_;
+	JsonHandler(Context& ctx) :
+		context_(ctx) {
+	}
+
+	bool Null() {
+		return true;
+	}
+	bool Bool(bool b) {
+		add_value(b);
+		return true;
+	}
+	bool Int(int i) {
+		add_value(i);
+		return true;
+	}
+	bool Uint(unsigned u) {
+		add_value(int(u));
+		return true;
+	}
+	bool Int64(int64_t i) {
+		add_value(int(i));
+		return true;
+	}
+	bool Uint64(uint64_t u) {
+		add_value(int(u));
+		return true;
+	}
+	bool Double(double d) {
+		add_value(d);
+		return true;
+	}
+	bool String(const char* str, rapidjson::SizeType length, bool copy) {
+		add_value(str, length);
+		return true;
+	}
+	bool StartObject() {
+		if (cur_path_.size()) { //make sure we don't start with a dot
+			cur_obj_ = cur_path_;
+			cur_obj_.append(1, delimiter);
+		} else
+			cur_obj_.clear();
+		return true;
+	}
+	bool Key(const char* str, rapidjson::SizeType length, bool copy) {
+		cur_path_ = cur_obj_;
+		cur_path_.append(str, length);  //current key
+		return true;
+	}
+	bool EndObject(rapidjson::SizeType ) {
+		if (!cur_obj_.size()) {
+			cur_obj_.clear();
+			return true;
+		}
+		auto pos = cur_obj_.rfind(delimiter, cur_obj_.size() - 2);  //skip the last delimiter. Should not have unnamed properties
+		if (pos == std::string::npos)
+			cur_obj_.clear();
+		else
+			cur_obj_.erase(pos);
+		return true;
+	}
+	bool StartArray() {
+		if (!context_[cur_path_].is_list()) //list
+			context_[cur_path_] = std::list<std::string>(); //make sure the value is list
+		return true;
+	}
+	bool EndArray(rapidjson::SizeType ) {
+		return true;
+	}
+
+	template<class T>
+	void add_value(const T& value) {
+		if (context_[cur_path_].is_list()){
+			context_[cur_path_].push_back(std::to_string(value));
+		}
+		else
+			context_[cur_path_] = value;
+	}
+	void add_value(const char* str, rapidjson::SizeType length) {
+		if (context_[cur_path_].is_list()){
+			context_[cur_path_].push_back(std::string(str, length));
+		}
+		else
+			context_[cur_path_] = std::string(str, length);
+	}
+};
+
+
 struct value;
 template<class Value = value>
 struct value_iterator {
@@ -102,6 +198,10 @@ struct value {
 		set_default_value();
 		return variant_->to_string();
 	}
+	bool is_list() const {
+		set_default_value();
+		return variant_->is_list();
+	}
 
 	void set_default_value() const { //dummy default value lazily set to avoid unnecessary object creation
 		if (!variant_) {
@@ -109,6 +209,13 @@ struct value {
 			own_pointer_ = true;
 		}
 	}
+	void push_back(const std::string& new_val) {
+		set_default_value();
+		typed_variant<std::list<std::string>, true>* list_variant = dynamic_cast<typed_variant<std::list<std::string>, true>*>(variant_);
+		if(list_variant)
+			list_variant->push_back(new_val);
+	}
+
 	template<class T>
 	value& operator=(const T& new_val) {
 		variant* tmp = new typed_variant<T, kaluun::is_iterable<T>::value>(new_val);
@@ -172,24 +279,21 @@ struct context {
 	context create_sub_context() {
 		return context(this);
 	}
-};
-}
 
-//todo support for range_mutable_iterator
-//namespace boost
-//{
-//    // specialize range_mutable_iterator and range_const_iterator in namespace boost
-//    template<>
-//    struct range_mutable_iterator< kaluun::context::value >
-//    {
-//        typedef kaluun::context::value_iterator type;
-//    };
-//
-//    template<>
-//    struct range_const_iterator< kaluun::context::value >
-//    {
-//        typedef kaluun::context::value_iterator type;
-//    };
-//}
+	template<class T>
+	void load_json(const T& json){
+		JsonHandler<context<Holder, Container> > handler(*this);
+		rapidjson::Reader reader;
+		rapidjson::StringStream ss(json);
+		rapidjson::ParseResult result = reader.Parse(ss, handler);
+		if (result.IsError()) {
+			throw std::logic_error(
+					std::string("Invalid JSON object at: ").append(json + result.Offset() - std::min(10, int(result.Offset())),
+							json + result.Offset() + std::min(10, int(std::strlen(json) - result.Offset()))));
+		}
+	}
+};
+
+}
 
 #endif /* CONTEXT_HPP_ */

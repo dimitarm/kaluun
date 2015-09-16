@@ -5,7 +5,7 @@
  *      Author: dimitar
  */
 
-#include <list>
+#include <vector>
 #include <string>
 #include "context.hpp"
 #include <boost/noncopyable.hpp>
@@ -32,7 +32,7 @@ struct node: public boost::noncopyable {
 template<class Context, class Out>
 struct node_with_children: public node<Context, Out> {
 
-	std::list<node<Context, Out>* > child_nodes_;
+	std::vector<node<Context, Out>* > child_nodes_;
 
 	void add_child(node<Context, Out>* child) {
 		child_nodes_.push_back(child);

@@ -69,6 +69,7 @@ struct variant: public boost::noncopyable {
 	virtual double to_double() const = 0;
 	virtual float to_float() const = 0;
 	virtual bool to_boolean() const = 0;
+	virtual bool is_list() const = 0;
 private:
 	variant& operator=(const std::string&) {
 		return *this;
@@ -172,6 +173,9 @@ struct typed_variant<T, false> : public variant {
 	bool to_boolean() const {
 		return boost::lexical_cast<bool>(value_);
 	}
+	bool is_list() const{
+		return false;
+	}
 };
 
 template<class T>
@@ -212,6 +216,9 @@ struct typed_variant<T&, false> : public variant {
 	bool to_boolean() const {
 		return boost::lexical_cast<bool>(value_);
 	}
+	bool is_list() const{
+		return false;
+	}
 };
 
 template<>
@@ -251,6 +258,9 @@ struct typed_variant<std::string, true> : public variant {
 	bool to_boolean() const {
 		return boost::lexical_cast<bool>(value_);
 	}
+	bool is_list() const{
+		return false;
+	}
 };
 
 template<>
@@ -288,6 +298,9 @@ struct typed_variant<std::string&, true> : public variant {
 	}
 	bool to_boolean() const {
 		return boost::lexical_cast<bool>(value_);
+	}
+	bool is_list() const{
+		return false;
 	}
 };
 
@@ -414,6 +427,13 @@ struct typed_variant<T, true> : public variant {
 	}
 	bool to_boolean() const {
 		throw std::logic_error("iterable cannot be transferred as boolean");
+	}
+	bool is_list() const{
+		return true;
+	}
+	template<class A>
+	void push_back(const A& a){
+		value_.push_back(a);
 	}
 };
 

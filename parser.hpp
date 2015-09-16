@@ -225,7 +225,7 @@ struct parser {
 			v_node = node;
 			node->text_ = unquoted_expr_text;
 		} else {
-			if (std::all_of(std::begin(expr_text), std::end(expr_text), isalnum)) { //todo use better algorithm to check if variable or not
+			if (std::all_of(std::begin(expr_text), std::end(expr_text), [](char ch){ return isalnum(ch) || ch == '.'; })) { //todo use better algorithm to check if variable or not
 				variable_node<context_type, out_type, holder_type>* node = new variable_node<context_type, out_type, holder_type>;
 				v_node = node;
 				node->name_ = expr_text;

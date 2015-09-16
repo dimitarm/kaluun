@@ -64,3 +64,27 @@ TEST(Functional, out1) {
 	EXPECT_STREQ("{blahblah}123qwerty{}}", str_out.str().c_str());
 }
 
+TEST(Functional_range, json1) {
+	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+
+	template_type tpl;
+	template_type::in_type template_text("{{valuestr}},{{valueint}},{{valuebool}},{{valueobj.prop1}}:{% for l in valueobj.prop2 %}{{l}},{% endfor %}");
+	template_type::out_type str_out;
+	template_type::context_type ctx;
+
+	char json[] = "{ \"valuestr\": \"15\","
+			"		\"valueint\": 23,"
+			"\"valuebool\": true,"
+			"\"valueobj\": {"
+			"\"prop1\":11,"
+			"\"prop2\":[1, \"xexe\", false]"
+			"} }";
+	ctx.load_json(json);
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
+	tpl.generate(ctx, str_out);
+
+	EXPECT_STREQ("15,23,1,11:1,xexe,0,", str_out.str().c_str());
+}
+
+
+
