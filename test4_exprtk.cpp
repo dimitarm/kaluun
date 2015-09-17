@@ -18,7 +18,7 @@
 using namespace std;
 
 TEST(Functional, exprtk_condition) {
-	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::exprtk::expression<kaluun::context<string, unordered_map>>, kaluun::exprtk::condition<kaluun::context<string, unordered_map>>, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::exprtk::expression<kaluun::context<string, unordered_map<string, kaluun::value>>>, kaluun::exprtk::condition<kaluun::context<string, unordered_map<string, kaluun::value>>>, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% set x = 5 %}{% if x > 5 %}bigger than five{% else %}less than five{% endif %}");
@@ -30,7 +30,7 @@ TEST(Functional, exprtk_condition) {
 }
 
 TEST(Functional, exprtk_expression) {
-	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::exprtk::expression<kaluun::context<string, unordered_map>>, kaluun::exprtk::condition<kaluun::context<string, unordered_map>>, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::exprtk::expression<kaluun::context<string, unordered_map<string, kaluun::value>>>, kaluun::exprtk::condition<kaluun::context<string, unordered_map<string, kaluun::value>>>, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{{b}} {% set x = 5 %}{% set y = 10 %}{% set z = x + y %}{{z}}{% set z = a + 1%} {{z}}{% set z = b%} {{z}} {{'sss'}} {{ x<y }}");
