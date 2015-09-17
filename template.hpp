@@ -168,9 +168,9 @@ struct root_node: public node_with_children<Context, Out> {
 	}
 };
 
-template<template <typename, typename> class Container, class In, class Out, class Expression, class Condition, class Holder>
+template<template <typename...> class Container, class In, class Out, class Expression, class Condition, class Holder>
 struct template_tree {
-	typedef context<Holder, Container>	context_type;
+	typedef context<Holder, Container<Holder, value> >	context_type;
 
 	typedef Out out_type;
 	typedef In in_type;

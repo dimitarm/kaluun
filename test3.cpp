@@ -12,7 +12,10 @@
 #include "expression.hpp"
 #include <boost/range.hpp>
 #include <sstream>
+#include <unordered_map>
 #include <map>
+#include <boost/functional/hash.hpp>
+
 
 template<class K, class V>
 struct test_container {
@@ -22,14 +25,25 @@ struct test_container {
 		return c_[key];
 	}
 };
-//todo ugly! to be removed
-template<class K, class V> struct testmap: public std::map<K, V> {
-};
+
+namespace std{
+	template<>
+	struct hash<boost::iterator_range<__gnu_cxx::__normal_iterator<const char*, basic_string<char> > > >{
+		size_t operator()(const boost::iterator_range<__gnu_cxx::__normal_iterator<const char*, basic_string<char> > >& key) const {
+			return boost::hash_range(begin(key), end(key));
+		}
+		size_t operator()(const boost::iterator_range<__gnu_cxx::__normal_iterator<const char*, basic_string<char> > >& key) {
+			return boost::hash_range(begin(key), end(key));
+		}
+	};
+}
 
 using namespace std;
+
+
 TEST(Functional_range, parse1) {
 	typedef boost::iterator_range<string::const_iterator> holder_t;
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, holder_t> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, holder_t> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{blahblah}{{x}}qwerty{}}");
@@ -51,7 +65,7 @@ TEST(Functional_range, parse1) {
 }
 
 TEST(Functional, out1) {
-	typedef kaluun::template_tree<testmap, std::string, std::stringstream, kaluun::dummy_expression, kaluun::dummy_condition, std::string> template_type;
+	typedef kaluun::template_tree<unordered_map, std::string, std::stringstream, kaluun::dummy_expression, kaluun::dummy_condition, std::string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{blahblah}{{x}}qwerty{}}");
@@ -64,8 +78,9 @@ TEST(Functional, out1) {
 	EXPECT_STREQ("{blahblah}123qwerty{}}", str_out.str().c_str());
 }
 
-TEST(Functional_range, json1) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+TEST(Functional, json1) {
+	//todo json with range
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{{valuestr}},{{valueint}},{{valuebool}},{{valueobj.prop1}}:{% for l in valueobj.prop2 %}{{l}},{% endfor %}");

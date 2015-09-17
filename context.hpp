@@ -234,7 +234,7 @@ T& operator<<(T& str, const value& val){
 	return str;
 }
 
-template<class Holder, template<typename, typename > class Container>
+template<class Holder, class Container>
 struct context {
 	typedef Holder holder_type;
 	struct exception: public std::exception {
@@ -252,7 +252,7 @@ struct context {
 	context() :
 			parent_(NULL) {
 	}
-	Container<Holder, value> values_; //todo evaluate hash on boost::iterator_range
+	Container values_;
 
 	context(context* parent) :
 			parent_(parent) {

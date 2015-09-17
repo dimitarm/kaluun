@@ -13,14 +13,12 @@
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/date.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <unordered_map>
+
 using namespace std;
 
-//todo ugly! to be removed
-template<class K, class V> struct testmap: public std::map<K, V> {
-};
-
 TEST(Functional, exprtk_condition) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::exprtk::expression<kaluun::context<string, testmap>>, kaluun::exprtk::condition<kaluun::context<string, testmap>>, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::exprtk::expression<kaluun::context<string, unordered_map>>, kaluun::exprtk::condition<kaluun::context<string, unordered_map>>, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% set x = 5 %}{% if x > 5 %}bigger than five{% else %}less than five{% endif %}");
@@ -32,7 +30,7 @@ TEST(Functional, exprtk_condition) {
 }
 
 TEST(Functional, exprtk_expression) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::exprtk::expression<kaluun::context<string, testmap>>, kaluun::exprtk::condition<kaluun::context<string, testmap>>, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::exprtk::expression<kaluun::context<string, unordered_map>>, kaluun::exprtk::condition<kaluun::context<string, unordered_map>>, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{{b}} {% set x = 5 %}{% set y = 10 %}{% set z = x + y %}{{z}}{% set z = a + 1%} {{z}}{% set z = b%} {{z}} {{'sss'}} {{ x<y }}");

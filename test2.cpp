@@ -13,14 +13,25 @@
 #include <boost/date_time/date.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <list>
+#include <unordered_map>
+#include <boost/functional/hash.hpp>
 
-//todo ugly! to be removed
-template<class K, class V> struct testmap: public std::map<K, V> {
-};
+namespace std{
+	template<>
+	struct hash<boost::iterator_range<__gnu_cxx::__normal_iterator<const char*, basic_string<char> > > >{
+		size_t operator()(const boost::iterator_range<__gnu_cxx::__normal_iterator<const char*, basic_string<char> > >& key) const {
+			return boost::hash_range(begin(key), end(key));
+		}
+		size_t operator()(const boost::iterator_range<__gnu_cxx::__normal_iterator<const char*, basic_string<char> > >& key) {
+			return boost::hash_range(begin(key), end(key));
+		}
+	};
+}
 
 using namespace std;
+
 TEST(Functional, comment) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{#####{{}}#####}{% set x = 5%}{#######}x={{x}}{#####}");
@@ -33,7 +44,7 @@ TEST(Functional, comment) {
 }
 
 TEST(Performance, parse_generate1) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	string template_text;
 
@@ -99,7 +110,7 @@ TEST(Performance, parse_generate1) {
 }
 
 TEST(Performance, parse1) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	string template_text;
 
@@ -149,9 +160,9 @@ TEST(Performance, parse1) {
 }
 
 TEST(Performance, holders_compare1) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type1;  //string holder
+	typedef kaluun::template_tree<map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type1;  //string holder
 	typedef boost::iterator_range<string::const_iterator> holder_t;
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, holder_t> template_type2;
+	typedef kaluun::template_tree<map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, holder_t> template_type2;
 
 	string template_text;
 
@@ -251,7 +262,7 @@ TEST(Performance, holders_compare1) {
 }
 
 TEST(Performance, generate1) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	string template_text;
 

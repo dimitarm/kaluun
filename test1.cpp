@@ -11,30 +11,13 @@
 #include "template.hpp"
 #include "expression.hpp"
 #include <list>
-#include <map>
+#include <unordered_map>
 #include <cassert>
 
 using namespace std;
 
-template <class K, class V> struct testmap {
-	typedef map<K, V> map_type;
-	map_type values_;
-	V& operator[](const K& key){
-		return values_[key];
-	}
-
-	typename map_type::iterator end(){
-		return values_.end();
-	}
-
-	typename map_type::iterator find(const K& key){
-		return values_.find(key);
-	}
-
-};
-
 TEST(Functional, parse1) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{blahblah}{{x}}qwerty{}}");
@@ -48,7 +31,7 @@ TEST(Functional, parse1) {
 }
 
 TEST(Functional, loop1) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% for v in values %}{{v}}{%endfor%}");
@@ -62,7 +45,7 @@ TEST(Functional, loop1) {
 }
 
 TEST(Functional, context1) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type tpl1;
@@ -98,7 +81,7 @@ TEST(Functional, context1) {
 }
 
 TEST(Functional, context2) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% for v in values %}{{v}}{%endfor%}_{% for v in value2 %}{{v}}{%endfor%}_{{value2}}");
@@ -150,7 +133,7 @@ TEST(Functional, context2) {
 //
 
 TEST(Functional, context4) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type::context_type ctx;
 	list<string> ints;
@@ -187,7 +170,7 @@ TEST(Functional, context4) {
 }
 
 TEST(Functional, elif_syntax1) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("abc{% if x > 5 %}biggerthanfive{% elif x > 3 %}biggerthanthree {%for x in xx%} {% else %}unknown{% endif %}efg");
@@ -202,7 +185,7 @@ TEST(Functional, elif_syntax1) {
 }
 
 TEST(Functional, elif_syntax2) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% if x > 5 %} template {% elif x < 2 %} template2 {% endif %}");
@@ -225,7 +208,7 @@ TEST(Functional, elif_syntax2) {
 //}
 
 TEST(Functional, set) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{% set x = y%}x={{x}}");
@@ -239,7 +222,7 @@ TEST(Functional, set) {
 }
 
 TEST(Functional, var_node) {
-	typedef kaluun::template_tree<testmap, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
 
 	template_type tpl;
 	template_type::in_type template_text("{{x}} {{'sss''d'\"'\" '\"'}} {{x>4}}");
@@ -250,6 +233,20 @@ TEST(Functional, var_node) {
 	tpl.generate(ctx, str_out);
 
 	EXPECT_STREQ("5 sssd' \" __dummy__value__", str_out.str().c_str());
+}
+
+TEST(Functional, container1) {
+	typedef kaluun::template_tree<unordered_map, string, stringstream, kaluun::dummy_expression, kaluun::dummy_condition, string> template_type;
+
+	template_type tpl;
+	template_type::in_type template_text("{blahblah}{{x}}qwerty{}}");
+	template_type::out_type str_out;
+	template_type::context_type ctx;
+	ctx[string("x")] = string("123");
+	kaluun::parser<template_type>::parse_template(template_text, tpl);
+	tpl.generate(ctx, str_out);
+
+	EXPECT_STREQ("{blahblah}123qwerty{}}", str_out.str().c_str());
 }
 
 int main(int argc, char **argv) {
