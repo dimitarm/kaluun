@@ -189,9 +189,16 @@ TEST(Functional, elif_syntax2) {
 
 	template_type tpl;
 	template_type::in_type template_text("{% if x > 5 %} template {% elif x < 2 %} template2 {% endif %}");
-	template_type::out_type str_out;
 	kaluun::parser<template_type>::parse_template(template_text, tpl);
 	SUCCEED();
+
+	template_type tpl1;
+	template_type::in_type template_text1("{% if dummy %} template {% elif x < 2 %} template2 {% else %} template3 {% endif %}");
+	template_type::out_type str_out1;
+	kaluun::parser<template_type>::parse_template(template_text1, tpl1);
+	template_type::context_type ctx;
+	tpl1.generate(ctx, str_out1);
+	EXPECT_STREQ(" template3 ", str_out1.str().c_str());
 }
 //TEST(Functional, dummy_expression){
 //	typedef kaluun::template_tree<kaluun::context<string>, string, stringstream, kaluun::dummy_expression<kaluun::context<string>, string>, kaluun::dummy_condition<kaluun::context<string>, string>, string> template_type;
@@ -249,6 +256,7 @@ TEST(Functional, container1) {
 	EXPECT_STREQ("{blahblah}123qwerty{}}", str_out.str().c_str());
 }
 
+
 int main(int argc, char **argv) {
 #ifdef NDEBUG
 	time_t now = time(nullptr);
@@ -259,6 +267,4 @@ int main(int argc, char **argv) {
 	return RUN_ALL_TESTS();
 }
 
-//todo bring context while parsing
 //todo support for unicode wchar
-

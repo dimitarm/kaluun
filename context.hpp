@@ -18,7 +18,7 @@ namespace kaluun {
 
 template<class Context>
 struct JsonHandler {
-	static const char delimiter = '.';  //todo problem if some variables have dot in their names
+	static const char delimiter = '.';
 	Context& context_;
 	std::string cur_obj_;
 	std::string cur_path_;
