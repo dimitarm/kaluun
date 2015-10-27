@@ -5,10 +5,10 @@
  *      Author: dimitar
  */
 #include "gtest/gtest.h"
-#include "context.hpp"
-#include "parser.hpp"
-#include "template.hpp"
-#include "expression.hpp"
+#include <kaluun/context.hpp>
+#include <kaluun/parser.hpp>
+#include <kaluun/template.hpp>
+#include <kaluun/expression.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/date.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>

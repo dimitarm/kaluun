@@ -6,10 +6,10 @@
  */
 
 #include "gtest/gtest.h"
-#include "context.hpp"
-#include "parser.hpp"
-#include "template.hpp"
-#include "expression.hpp"
+#include <kaluun/context.hpp>
+#include <kaluun/parser.hpp>
+#include <kaluun/template.hpp>
+#include <kaluun/expression.hpp>
 #include <boost/range.hpp>
 #include <sstream>
 #include <unordered_map>
