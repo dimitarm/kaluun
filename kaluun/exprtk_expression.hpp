@@ -6,7 +6,7 @@
  */
 
 #include "expression.hpp"
-#include <exprtk.hpp>
+#include <exprtk/exprtk.hpp>
 #include "context.hpp"
 #include <list>
 #include <boost/noncopyable.hpp>

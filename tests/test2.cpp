@@ -103,10 +103,10 @@ TEST(Performance, parse_generate1) {
 	auto generate_time = boost::posix_time::microsec_clock::local_time() - begin;
 	stringstream buf1;
 	buf1 << parse_time;
-	::testing::Test::RecordProperty("ParseTime", buf1.str());
+	::testing::Test::RecordProperty("ParseTime", buf1.str().c_str());
 	stringstream buf2;
 	buf2 << generate_time;
-	::testing::Test::RecordProperty("GenerateTime", buf2.str());
+	::testing::Test::RecordProperty("GenerateTime", buf2.str().c_str());
 }
 
 TEST(Performance, parse1) {
@@ -156,7 +156,7 @@ TEST(Performance, parse1) {
 	auto parse_time = boost::posix_time::microsec_clock::local_time() - begin;
 	stringstream buf1;
 	buf1 << parse_time;
-	::testing::Test::RecordProperty("ParseTime", buf1.str());
+	::testing::Test::RecordProperty("ParseTime", buf1.str().c_str());
 }
 
 TEST(Performance, holders_compare1) {
@@ -299,5 +299,5 @@ TEST(Performance, generate1) {
 	auto generate_time = boost::posix_time::microsec_clock::local_time() - begin;
 	stringstream buf2;
 	buf2 << generate_time;
-	::testing::Test::RecordProperty("GenerateTime", buf2.str());
+	::testing::Test::RecordProperty("GenerateTime", buf2.str().c_str());
 }

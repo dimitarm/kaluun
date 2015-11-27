@@ -9,7 +9,7 @@
 #include <list>
 #include <boost/noncopyable.hpp>
 #include "variant.hpp"
-#include "rapidjson/reader.h"
+#include <rapidjson/reader.h>
 
 #ifndef CONTEXT_HPP_
 #define CONTEXT_HPP_

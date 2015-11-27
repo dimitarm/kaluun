@@ -37,7 +37,7 @@ ifeq "$(CONF)" ""
 	CONF=Debug
 endif
 ifeq "$(CONF)" "Debug"
-    CFLAGS+=-O0 -g3 
+    CFLAGS+=-O0 -g3
     CXXFLAGS+=-O0 -g3 
 endif
 ifeq "$(CONF)" "Size"
@@ -45,7 +45,8 @@ ifeq "$(CONF)" "Size"
 	CXXFLAGS+=-Os
 endif
 ifeq "$(CONF)" "Release"
-    CFLAGS+=-O2 -fPIC
+    CFLAGS+=-O3 
+    CXXFLAGS+=-O3  
     DEFINES+=-DNDEBUG
 endif
 
@@ -66,6 +67,8 @@ INCLUDES:=-I..
 
 # Dirty build things
 SRCS_CPP:=$(shell ls *.cpp)
+
+ LDLIBSOPTIONS=-lgtest -lpthread
 
 OBJ:=\
 $(addprefix $(BUILD)/,$(patsubst %.cpp,%.cpp_o,$(wildcard $(SRCS_CPP)))) 

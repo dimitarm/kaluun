@@ -4,7 +4,8 @@
  *  Created on: Sep 8, 2015
  *      Author: dimitar
  */
-#include "exprtk_expression.hpp"
+#include "gtest/gtest.h"
+#include <kaluun/exprtk_expression.hpp>
 #include <kaluun/context.hpp>
 #include <kaluun/parser.hpp>
 #include <kaluun/template.hpp>
